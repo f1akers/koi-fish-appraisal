@@ -16,11 +16,25 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     MODEL_PATH: Path = Path("./models")
     IMAGES_PATH: Path = Path("./images")
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    ALLOWED_ORIGINS: List[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "env_nested_delimiter": "__",
+    }
+    
+    @classmethod
+    def parse_env_var(cls, field_name: str, raw_val: str):
+        """Parse environment variables, handling comma-separated lists."""
+        if field_name == "ALLOWED_ORIGINS":
+            return [origin.strip() for origin in raw_val.split(",")]
+        return raw_val
 
 
 settings = Settings()
