@@ -6,7 +6,8 @@
 
 import type { AppraisalResult } from '../types';
 
-const API_BASE = '/api';
+// Use environment variable for API base URL, fallback to proxy path for development
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 /**
  * Send an image for appraisal
@@ -21,7 +22,7 @@ export async function appraiseImage(imageBlob: Blob): Promise<AppraisalResult> {
     });
 
     if (!response.ok) {
-        const error = await response.json();
+        const error = await response.json().catch(() => ({ detail: 'Failed to appraise image' }));
         throw new Error(error.detail || 'Failed to appraise image');
     }
 
@@ -54,7 +55,7 @@ export async function triggerTraining(csvPath: string): Promise<{ status: string
     });
 
     if (!response.ok) {
-        const error = await response.json();
+        const error = await response.json().catch(() => ({ detail: 'Failed to trigger training' }));
         throw new Error(error.detail || 'Failed to trigger training');
     }
 

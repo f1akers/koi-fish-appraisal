@@ -1,1 +1,176 @@
 @import "tailwindcss";
+
+/* Custom flat style theme */
+:root {
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-info: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-gold: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+  --gradient-ocean: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-sunset: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --gradient-mint: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+/* Flat UI base styles */
+body {
+  @apply bg-white text-gray-800 antialiased;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Flat button styles - no shadows */
+.btn-flat {
+  @apply px-6 py-3 font-semibold rounded-xl transition-all duration-200;
+  @apply hover:opacity-90 active:scale-[0.98];
+}
+
+.btn-primary {
+  background: var(--gradient-primary);
+  @apply text-white;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
+}
+
+.btn-success {
+  background: var(--gradient-success);
+  @apply text-white;
+}
+
+/* Flat card styles with gradients */
+.card-flat {
+  @apply rounded-2xl p-6 transition-all duration-200;
+}
+
+.card-gradient-primary {
+  background: var(--gradient-primary);
+  @apply text-white;
+}
+
+.card-gradient-success {
+  background: var(--gradient-success);
+  @apply text-white;
+}
+
+.card-gradient-info {
+  background: var(--gradient-info);
+  @apply text-white;
+}
+
+.card-gradient-gold {
+  background: var(--gradient-gold);
+  @apply text-white;
+}
+
+.card-gradient-mint {
+  background: var(--gradient-mint);
+  @apply text-gray-800;
+}
+
+.card-gradient-sunset {
+  background: var(--gradient-sunset);
+  @apply text-white;
+}
+
+/* Subtle bordered cards */
+.card-bordered {
+  @apply bg-white border border-gray-100 rounded-2xl;
+}
+
+/* Progress bar styles */
+.progress-flat {
+  @apply h-2 rounded-full bg-gray-100 overflow-hidden;
+}
+
+.progress-fill {
+  @apply h-full rounded-full transition-all duration-500 ease-out;
+}
+
+/* Animated number counter */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-count {
+  animation: countUp 0.5s ease-out forwards;
+}
+
+/* Fade in sequence animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.animate-delay-100 {
+  animation-delay: 0.1s;
+  opacity: 0;
+}
+
+.animate-delay-200 {
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+.animate-delay-300 {
+  animation-delay: 0.3s;
+  opacity: 0;
+}
+
+.animate-delay-400 {
+  animation-delay: 0.4s;
+  opacity: 0;
+}
+
+/* Pulse animation for loading */
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* Camera viewfinder animation */
+@keyframes scan {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-scan {
+  animation: scan 2s ease-in-out infinite;
+}

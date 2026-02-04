@@ -3,6 +3,7 @@
  */
 
 export { CameraCapture } from './CameraCapture';
+export { ColorDistribution } from './ColorDistribution';
 export { GuideOverlay } from './GuideOverlay';
 export { MetricCard } from './MetricCard';
 export { ResultsPanel } from './ResultsPanel';

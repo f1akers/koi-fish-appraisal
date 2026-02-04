@@ -64,45 +64,84 @@ function App() {
   }, [history]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <h1 className="text-xl font-bold text-gray-900">🐟 Koi Fish Appraisal</h1>
+    <div className="min-h-screen bg-white">
+      {/* Header - Flat design with gradient accent */}
+      <header className="bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* Logo with gradient background */}
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                <span className="text-xl">🐟</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Koi Appraisal</h1>
+                <p className="text-xs text-gray-500">AI-Powered Fish Valuation</p>
+              </div>
+            </div>
+
+            {/* Session counter badge */}
+            {history.length > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-violet-50 to-purple-50 rounded-full">
+                <div className="w-2 h-2 rounded-full bg-gradient-to-r from-violet-500 to-purple-600"></div>
+                <span className="text-sm font-medium text-purple-700">
+                  {history.length} appraisal{history.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Error Banner */}
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 pb-24">
+        {/* Error Banner - Flat design */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            <p className="font-medium">Error</p>
-            <p className="text-sm">{error}</p>
+          <div className="mb-8 p-5 bg-gradient-to-r from-red-50 to-rose-50 border border-red-100 rounded-2xl">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-red-800">Something went wrong</p>
+                <p className="text-sm text-red-600 mt-1">{error}</p>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Camera View */}
         {view === 'camera' && (
-          <CameraCapture onCapture={handleCapture} isProcessing={isLoading} />
+          <div className="animate-fade-in">
+            <CameraCapture onCapture={handleCapture} isProcessing={isLoading} />
+          </div>
         )}
 
         {/* Results View */}
         {view === 'results' && result && (
-          <ResultsPanel
-            result={result}
-            imagePreview={imagePreview}
-            onNewCapture={handleNewCapture}
-            onExport={handleExport}
-          />
+          <div className="animate-fade-in">
+            <ResultsPanel
+              result={result}
+              imagePreview={imagePreview}
+              onNewCapture={handleNewCapture}
+              onExport={handleExport}
+            />
+          </div>
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2">
-        <p className="text-center text-sm text-gray-500">
-          {history.length} appraisal{history.length !== 1 ? 's' : ''} this session
-        </p>
+      {/* Footer - Minimal flat design */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-100 py-3">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+            <span>Powered by</span>
+            <span className="font-semibold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+              YOLOv8 + Linear Regression
+            </span>
+          </div>
+        </div>
       </footer>
     </div>
   );
