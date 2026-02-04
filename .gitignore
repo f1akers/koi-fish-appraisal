@@ -1,0 +1,84 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.pytest_cache/
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+
+# Build outputs
+dist/
+*.local
+
+# ML Models (large files - manage with Git LFS or exclude)
+# Uncomment if models should not be tracked:
+# backend/models/*.pt
+# backend/models/*.pkl
+
+# Training images (typically too large for git)
+backend/images/*.jpg
+backend/images/*.jpeg
+backend/images/*.png
+!backend/images/.gitkeep
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vite
+*.local
