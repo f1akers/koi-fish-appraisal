@@ -16,10 +16,10 @@
 
 | Feature | Status | Documentation |
 |---------|--------|---------------|
-| Feature 1: Fish Metrics | � Completed | [fish-metrics.md](./features/fish-metrics.md) |
-| Feature 2: Linear Regression Trainer | � Completed | [linear-regression-trainer.md](./features/linear-regression-trainer.md) |
-| Feature 3: Frontend Camera Capture | 🔴 Not Started | [frontend-capture.md](./features/frontend-capture.md) |
-| Feature 4: Results Display & Export | 🔴 Not Started | [results-display.md](./features/results-display.md) |
+| Feature 1: Fish Metrics | 🟢 Completed | [fish-metrics.md](./features/fish-metrics.md) |
+| Feature 2: Linear Regression Trainer | 🟢 Completed | [linear-regression-trainer.md](./features/linear-regression-trainer.md) |
+| Feature 3: Frontend Camera Capture | 🟢 Completed | [frontend-capture.md](./features/frontend-capture.md) |
+| Feature 4: Results Display & Export | 🟢 Completed | [results-display.md](./features/results-display.md) |
 
 ### Status Legend
 - 🔴 Not Started
