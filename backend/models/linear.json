@@ -1,0 +1,45 @@
+{
+  "trained_at": "2026-02-05T19:12:43.743163",
+  "samples_total": 6,
+  "samples_successful": 5,
+  "samples_failed": 1,
+  "metrics": {
+    "r2_score": NaN,
+    "mae": 21224.448996158782,
+    "mse": 450477235.19054556,
+    "rmse": 21224.448996158782,
+    "samples_trained": 4,
+    "samples_validated": 1
+  },
+  "feature_names": [
+    "size_cm",
+    "pattern_ogon",
+    "pattern_showa",
+    "pattern_kohaku",
+    "pattern_confidence",
+    "color_white_pct",
+    "color_red_pct",
+    "color_black_pct",
+    "color_quality_score",
+    "symmetry_score"
+  ],
+  "feature_coefficients": {
+    "size_cm": 2408.8152273536743,
+    "pattern_ogon": -5345.0225050401805,
+    "pattern_showa": -2.2737367544323206e-12,
+    "pattern_kohaku": -3263.542332610299,
+    "pattern_confidence": 3602.9726740738356,
+    "color_white_pct": 7502.413601708213,
+    "color_red_pct": 3142.0063580025885,
+    "color_black_pct": 9934.471891440497,
+    "color_quality_score": -7748.870911362696,
+    "symmetry_score": 0.0
+  },
+  "intercept": 77500.0,
+  "failed_images": [
+    [
+      "sample_ogon_01.png",
+      "Feature extraction failed"
+    ]
+  ]
+}
