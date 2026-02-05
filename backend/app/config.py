@@ -5,9 +5,10 @@ Contains settings, constants, and coin size mappings.
 """
 
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
-from pydantic_settings import BaseSettings
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -16,25 +17,17 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     MODEL_PATH: Path = Path("./models")
     IMAGES_PATH: Path = Path("./images")
-    ALLOWED_ORIGINS: List[str] = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ]
+    ALLOWED_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000"
     
-    model_config = {
-        "env_file": ".env",
-        "env_file_encoding": "utf-8",
-        "env_nested_delimiter": "__",
-    }
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+    )
     
-    @classmethod
-    def parse_env_var(cls, field_name: str, raw_val: str):
-        """Parse environment variables, handling comma-separated lists."""
-        if field_name == "ALLOWED_ORIGINS":
-            return [origin.strip() for origin in raw_val.split(",")]
-        return raw_val
+    @property
+    def allowed_origins_list(self) -> List[str]:
+        """Get ALLOWED_ORIGINS as a list of strings."""
+        return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
 
 
 settings = Settings()
@@ -102,6 +95,79 @@ COIN_SIZES: dict[str, dict[str, float]] = {
     },
 }
 
+# =============================================================================
+# Coin Class Name Mapping
+# =============================================================================
+# Maps model output class names to COIN_SIZES keys
+# The coin.pt model outputs names like "1 peso new front", "1 peso old back", etc.
+# =============================================================================
+
+COIN_CLASS_MAP: dict[str, str] = {
+    # 1 Peso New
+    "1 peso new front": "1peso_new",
+    "1 peso new back": "1peso_new",
+    "1peso new front": "1peso_new",
+    "1peso new back": "1peso_new",
+    # 1 Peso Old
+    "1 peso old front": "1peso_old",
+    "1 peso old back": "1peso_old",
+    "1peso old front": "1peso_old",
+    "1peso old back": "1peso_old",
+    # 5 Peso New
+    "5 peso new front": "5peso_new",
+    "5 peso new back": "5peso_new",
+    "5peso new front": "5peso_new",
+    "5peso new back": "5peso_new",
+    # 5 Peso Old
+    "5 peso old front": "5peso_old",
+    "5 peso old back": "5peso_old",
+    "5peso old front": "5peso_old",
+    "5peso old back": "5peso_old",
+    # 10 Peso New
+    "10 peso new front": "10peso_new",
+    "10 peso new back": "10peso_new",
+    "10peso new front": "10peso_new",
+    "10peso new back": "10peso_new",
+    # 10 Peso Old
+    "10 peso old front": "10peso_old",
+    "10 peso old back": "10peso_old",
+    "10peso old front": "10peso_old",
+    "10peso old back": "10peso_old",
+    # 20 Peso
+    "20 peso front": "20peso",
+    "20 peso back": "20peso",
+    "20peso front": "20peso",
+    "20peso back": "20peso",
+}
+
+
+def normalize_coin_class(coin_class: str) -> str:
+    """
+    Normalize coin class name from model output to COIN_SIZES key.
+    
+    Args:
+        coin_class: The class name from the coin detection model.
+        
+    Returns:
+        Normalized class name matching COIN_SIZES keys.
+        
+    Raises:
+        ValueError: If coin class cannot be normalized.
+    """
+    # First check if it's already a valid key
+    if coin_class in COIN_SIZES:
+        return coin_class
+    
+    # Try to map from model output format
+    normalized = COIN_CLASS_MAP.get(coin_class.lower())
+    if normalized:
+        return normalized
+    
+    raise ValueError(
+        f"Unknown coin class: {coin_class}. "
+        f"Valid classes: {list(COIN_SIZES.keys())}"
+    )
+
 
 def get_coin_diameter_cm(coin_class: str) -> float:
     """
@@ -116,12 +182,8 @@ def get_coin_diameter_cm(coin_class: str) -> float:
     Raises:
         ValueError: If coin class is not recognized.
     """
-    if coin_class not in COIN_SIZES:
-        raise ValueError(
-            f"Unknown coin class: {coin_class}. "
-            f"Valid classes: {list(COIN_SIZES.keys())}"
-        )
-    return COIN_SIZES[coin_class]["diameter_cm"]
+    normalized = normalize_coin_class(coin_class)
+    return COIN_SIZES[normalized]["diameter_cm"]
 
 
 def get_coin_diameter_mm(coin_class: str) -> float:
@@ -137,12 +199,8 @@ def get_coin_diameter_mm(coin_class: str) -> float:
     Raises:
         ValueError: If coin class is not recognized.
     """
-    if coin_class not in COIN_SIZES:
-        raise ValueError(
-            f"Unknown coin class: {coin_class}. "
-            f"Valid classes: {list(COIN_SIZES.keys())}"
-        )
-    return COIN_SIZES[coin_class]["diameter_mm"]
+    normalized = normalize_coin_class(coin_class)
+    return COIN_SIZES[normalized]["diameter_mm"]
 
 
 # =============================================================================
