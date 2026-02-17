@@ -220,5 +220,8 @@ MODEL_PATHS = {
     "koi_segment": settings.MODEL_PATH / "koi-segment.pt",
     "coin_detect": settings.MODEL_PATH / "coin.pt",
     "koi_pattern": settings.MODEL_PATH / "koi-pattern.pt",
-    "linear_regression": settings.MODEL_PATH / "linear.pkl",
+    # Per-pattern linear regression models
+    "linear_ogon": settings.MODEL_PATH / "linear_ogon.pkl",
+    "linear_showa": settings.MODEL_PATH / "linear_showa.pkl",
+    "linear_kohaku": settings.MODEL_PATH / "linear_kohaku.pkl",
 }

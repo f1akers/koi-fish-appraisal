@@ -259,3 +259,20 @@ def detect_fish_size(image: np.ndarray) -> Tuple[float, np.ndarray, dict]:
     """
     detector = get_size_detector()
     return detector.detect_size(image)
+
+
+def detect_fish_mask(image: np.ndarray) -> Tuple[Optional[np.ndarray], int]:
+    """
+    Convenience function to detect fish segmentation mask only.
+    
+    Does NOT require a reference coin in the image.
+    
+    Args:
+        image: Input image as numpy array (BGR format).
+        
+    Returns:
+        Tuple of (binary segmentation mask, pixel count).
+        Returns (None, 0) if no fish detected.
+    """
+    detector = get_size_detector()
+    return detector.detect_fish_mask(image)

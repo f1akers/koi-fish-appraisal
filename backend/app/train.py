@@ -1,8 +1,15 @@
 """
-Linear Regression Trainer
+Linear Regression Trainer (Per-Pattern)
 
-Training script for the koi fish price prediction model.
-Extracts features from labeled images and trains a linear regression model.
+Training script for koi fish price prediction models.
+Trains separate linear regression models for each koi pattern type
+(ogon, showa, kohaku) using pattern-specific training data.
+
+Usage:
+    python -m app.train \
+        --ogon-csv <path> --ogon-images <dir> \
+        --showa-csv <path> --showa-images <dir> \
+        --kohaku-csv <path> --kohaku-images <dir>
 """
 
 import argparse
@@ -26,7 +33,7 @@ from sklearn.preprocessing import StandardScaler
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.config import settings, MODEL_PATHS, KOI_PATTERNS
-from app.services.size_detection import detect_fish_size
+from app.services.size_detection import detect_fish_mask
 from app.services.pattern_detection import classify_koi_pattern
 from app.services.color_analysis import analyze_fish_colors
 from app.services.symmetry_analysis import analyze_fish_symmetry
@@ -38,129 +45,179 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Feature names for per-pattern models
+# Size is excluded because training images typically lack a reference coin.
+FEATURE_NAMES: List[str] = [
+    'pattern_confidence',
+    'color_white_pct',
+    'color_red_pct',
+    'color_black_pct',
+    'color_quality_score',
+    'symmetry_score',
+]
 
-class KoiPriceTrainer:
+
+class KoiPatternTrainer:
     """
-    Trains a linear regression model for koi fish price prediction.
-    
-    Extracts features from labeled images and trains a model that
-    predicts price based on size, pattern, color, and symmetry metrics.
+    Trains a linear regression model for a single koi pattern type.
+
+    Since each pattern gets its own model, the feature vector excludes
+    pattern one-hot encoding — only size, color, symmetry, and
+    pattern-confidence features are used.
     """
-    
+
     def __init__(
         self,
-        images_dir: Optional[Path] = None,
-        output_path: Optional[Path] = None
+        pattern_name: str,
+        images_dir: Path,
+        output_path: Optional[Path] = None,
     ):
         """
-        Initialize the trainer.
-        
+        Initialize the per-pattern trainer.
+
         Args:
-            images_dir: Directory containing training images.
-            output_path: Path to save the trained model.
+            pattern_name: One of 'ogon', 'showa', 'kohaku'.
+            images_dir: Directory containing this pattern's training images.
+            output_path: Path to save the trained model (.pkl).
         """
-        self.images_dir = images_dir or settings.IMAGES_PATH
-        self.output_path = output_path or MODEL_PATHS["linear_regression"]
-        
+        if pattern_name not in KOI_PATTERNS:
+            raise ValueError(
+                f"Invalid pattern '{pattern_name}'. "
+                f"Must be one of {KOI_PATTERNS}"
+            )
+
+        self.pattern_name = pattern_name
+        self.images_dir = Path(images_dir)
+        self.output_path = (
+            output_path
+            or MODEL_PATHS[f"linear_{pattern_name}"]
+        )
+
         self.model: Optional[LinearRegression] = None
         self.scaler: Optional[StandardScaler] = None
-        self.feature_names: List[str] = []
-        
+        self.feature_names: List[str] = list(FEATURE_NAMES)
+
         # Training data
         self.features: List[List[float]] = []
         self.labels: List[float] = []
         self.failed_images: List[Tuple[str, str]] = []
-    
+
+    # --------------------------------------------------------------------- #
+    #  Data loading
+    # --------------------------------------------------------------------- #
+
     def load_training_data(self, csv_path: str) -> int:
         """
-        Load training data from CSV file.
-        
+        Load training data from a CSV file.
+
+        The CSV must have columns: ``image_filename``, ``price``.
+
         Args:
-            csv_path: Path to CSV file with columns: image_filename, price
-            
+            csv_path: Path to the CSV file.
+
         Returns:
             Number of successfully loaded samples.
         """
         csv_path = Path(csv_path)
         if not csv_path.exists():
             raise FileNotFoundError(f"CSV file not found: {csv_path}")
-        
-        logger.info(f"Loading training data from {csv_path}")
-        
+
+        logger.info(
+            f"[{self.pattern_name}] Loading training data from {csv_path}"
+        )
+
         with open(csv_path, 'r', newline='', encoding='utf-8') as f:
             reader = csv.DictReader(f)
-            
+
             for row in reader:
                 image_filename = row.get('image_filename', '').strip()
                 price_str = row.get('price', '').strip()
-                
+
                 if not image_filename or not price_str:
-                    logger.warning(f"Skipping invalid row: {row}")
+                    logger.warning(
+                        f"[{self.pattern_name}] Skipping invalid row: {row}"
+                    )
                     continue
-                
+
                 try:
                     price = float(price_str)
                 except ValueError:
-                    logger.warning(f"Invalid price value: {price_str}")
+                    logger.warning(
+                        f"[{self.pattern_name}] Invalid price value: "
+                        f"{price_str}"
+                    )
                     continue
-                
-                # Load and process image
+
                 image_path = self.images_dir / image_filename
                 if not image_path.exists():
-                    logger.warning(f"Image not found: {image_path}")
-                    self.failed_images.append((image_filename, "File not found"))
+                    logger.warning(
+                        f"[{self.pattern_name}] Image not found: {image_path}"
+                    )
+                    self.failed_images.append(
+                        (image_filename, "File not found")
+                    )
                     continue
-                
-                # Extract features
+
                 features = self._extract_features(image_path)
-                
+
                 if features is None:
-                    self.failed_images.append((image_filename, "Feature extraction failed"))
+                    self.failed_images.append(
+                        (image_filename, "Feature extraction failed")
+                    )
                     continue
-                
+
                 self.features.append(features)
                 self.labels.append(price)
-                
-                logger.info(f"Processed: {image_filename} (price: {price})")
-        
+
+                logger.info(
+                    f"[{self.pattern_name}] Processed: {image_filename} "
+                    f"(price: {price})"
+                )
+
         logger.info(
-            f"Loaded {len(self.features)} samples, "
+            f"[{self.pattern_name}] Loaded {len(self.features)} samples, "
             f"{len(self.failed_images)} failed"
         )
-        
+
         return len(self.features)
-    
+
+    # --------------------------------------------------------------------- #
+    #  Feature extraction
+    # --------------------------------------------------------------------- #
+
     def _extract_features(self, image_path: Path) -> Optional[List[float]]:
         """
         Extract feature vector from a single image.
-        
+
         Args:
             image_path: Path to the image file.
-            
+
         Returns:
-            List of feature values, or None if extraction failed.
+            List of feature values, or ``None`` if extraction failed.
         """
         try:
-            # Load image
             image = cv2.imread(str(image_path))
             if image is None:
                 logger.error(f"Could not read image: {image_path}")
                 return None
-            
-            # 1. Size detection (also gets segmentation mask)
+
+            # 1. Fish segmentation (mask only — no coin/size needed)
             try:
-                size_cm, mask, size_info = detect_fish_size(image)
+                mask, pixel_count = detect_fish_mask(image)
+                if mask is None:
+                    logger.error(f"No fish detected in {image_path}")
+                    return None
             except Exception as e:
-                logger.error(f"Size detection failed: {e}")
+                logger.error(f"Fish segmentation failed: {e}")
                 return None
-            
-            # 2. Pattern recognition
+
+            # 2. Pattern recognition — still run to capture confidence
             try:
                 pattern_name, pattern_conf = classify_koi_pattern(image, mask)
             except Exception as e:
                 logger.warning(f"Pattern detection failed: {e}")
                 pattern_name, pattern_conf = "unknown", 0.0
-            
+
             # 3. Color analysis
             try:
                 color_metrics = analyze_fish_colors(image, mask)
@@ -170,187 +227,160 @@ class KoiPriceTrainer:
                     "white_pct": 0.0,
                     "red_pct": 0.0,
                     "black_pct": 0.0,
-                    "quality_score": 0.0
+                    "quality_score": 0.0,
                 }
-            
+
             # 4. Symmetry analysis
             try:
                 symmetry_score = analyze_fish_symmetry(image, mask)
             except Exception as e:
                 logger.warning(f"Symmetry analysis failed: {e}")
                 symmetry_score = 0.5
-            
-            # Build feature vector
-            features = self._build_feature_vector(
-                size_cm=size_cm,
-                pattern_name=pattern_name,
+
+            return self._build_feature_vector(
                 pattern_confidence=pattern_conf,
                 color_metrics=color_metrics,
-                symmetry_score=symmetry_score
+                symmetry_score=symmetry_score,
             )
-            
-            return features
-            
+
         except Exception as e:
-            logger.error(f"Feature extraction error for {image_path}: {e}")
+            logger.error(
+                f"Feature extraction error for {image_path}: {e}"
+            )
             return None
-    
+
+    @staticmethod
     def _build_feature_vector(
-        self,
-        size_cm: float,
-        pattern_name: str,
         pattern_confidence: float,
         color_metrics: Dict[str, float],
-        symmetry_score: float
+        symmetry_score: float,
     ) -> List[float]:
         """
-        Build the feature vector for model training.
-        
-        Features:
-        - size_cm: Fish size in centimeters
-        - pattern_ogon, pattern_showa, pattern_kohaku: One-hot encoded pattern
-        - pattern_confidence: Pattern classification confidence
-        - color_white_pct: Percentage of white
-        - color_red_pct: Percentage of red
-        - color_black_pct: Percentage of black
-        - color_quality_score: Color quality score
-        - symmetry_score: Bilateral symmetry score
-        
-        Args:
-            Various metrics from feature extraction.
-            
-        Returns:
-            List of feature values.
+        Build the feature vector for a per-pattern model.
+
+        Size is excluded because training images typically lack a
+        reference coin.  Features (in order):
+
+        - ``pattern_confidence``
+        - ``color_white_pct``
+        - ``color_red_pct``
+        - ``color_black_pct``
+        - ``color_quality_score``
+        - ``symmetry_score``
         """
-        # Set feature names on first call
-        if not self.feature_names:
-            self.feature_names = [
-                'size_cm',
-                'pattern_ogon',
-                'pattern_showa',
-                'pattern_kohaku',
-                'pattern_confidence',
-                'color_white_pct',
-                'color_red_pct',
-                'color_black_pct',
-                'color_quality_score',
-                'symmetry_score'
-            ]
-        
-        # One-hot encode pattern
-        pattern_ogon = 1.0 if pattern_name == 'ogon' else 0.0
-        pattern_showa = 1.0 if pattern_name == 'showa' else 0.0
-        pattern_kohaku = 1.0 if pattern_name == 'kohaku' else 0.0
-        
-        features = [
-            size_cm,
-            pattern_ogon,
-            pattern_showa,
-            pattern_kohaku,
+        return [
             pattern_confidence,
             color_metrics['white_pct'],
             color_metrics['red_pct'],
             color_metrics['black_pct'],
             color_metrics['quality_score'],
-            symmetry_score
+            symmetry_score,
         ]
-        
-        return features
-    
+
+    # --------------------------------------------------------------------- #
+    #  Training
+    # --------------------------------------------------------------------- #
+
     def train(
         self,
         validation_split: float = 0.2,
-        random_state: int = 42
+        random_state: int = 42,
     ) -> Dict[str, float]:
         """
         Train the linear regression model.
-        
+
         Args:
-            validation_split: Fraction of data to use for validation.
+            validation_split: Fraction of data for validation.
             random_state: Random seed for reproducibility.
-            
+
         Returns:
             Dictionary of training metrics.
         """
         if len(self.features) < 5:
             raise ValueError(
-                f"Not enough training samples: {len(self.features)}. "
-                "Need at least 5 samples."
+                f"[{self.pattern_name}] Not enough training samples: "
+                f"{len(self.features)}. Need at least 5."
             )
-        
-        logger.info(f"Training model with {len(self.features)} samples...")
-        
+
+        logger.info(
+            f"[{self.pattern_name}] Training model with "
+            f"{len(self.features)} samples..."
+        )
+
         X = np.array(self.features)
         y = np.array(self.labels)
-        
-        # Split data
+
         X_train, X_val, y_train, y_val = train_test_split(
             X, y, test_size=validation_split, random_state=random_state
         )
-        
-        # Scale features
+
         self.scaler = StandardScaler()
         X_train_scaled = self.scaler.fit_transform(X_train)
         X_val_scaled = self.scaler.transform(X_val)
-        
-        # Train model
+
         self.model = LinearRegression()
         self.model.fit(X_train_scaled, y_train)
-        
-        # Evaluate on validation set
+
         y_pred = self.model.predict(X_val_scaled)
-        
+
         metrics = {
             'r2_score': r2_score(y_val, y_pred),
             'mae': mean_absolute_error(y_val, y_pred),
             'mse': mean_squared_error(y_val, y_pred),
-            'rmse': np.sqrt(mean_squared_error(y_val, y_pred)),
+            'rmse': float(np.sqrt(mean_squared_error(y_val, y_pred))),
             'samples_trained': len(X_train),
-            'samples_validated': len(X_val)
+            'samples_validated': len(X_val),
         }
-        
-        logger.info(f"Training complete. Metrics: {metrics}")
-        
-        # Log feature importances (coefficients)
-        logger.info("\nFeature Coefficients:")
+
+        logger.info(
+            f"[{self.pattern_name}] Training complete. Metrics: {metrics}"
+        )
+
+        logger.info(f"\n[{self.pattern_name}] Feature Coefficients:")
         for name, coef in zip(self.feature_names, self.model.coef_):
             logger.info(f"  {name}: {coef:.4f}")
         logger.info(f"  Intercept: {self.model.intercept_:.4f}")
-        
+
         return metrics
-    
+
+    # --------------------------------------------------------------------- #
+    #  Persistence
+    # --------------------------------------------------------------------- #
+
     def save_model(self) -> None:
         """Save the trained model and scaler to disk."""
         if self.model is None:
             raise ValueError("No model to save. Train the model first.")
-        
-        # Create output directory if needed
+
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Save model and scaler together
+
         model_data = {
             'model': self.model,
             'scaler': self.scaler,
             'feature_names': self.feature_names,
+            'pattern': self.pattern_name,
             'trained_at': datetime.now().isoformat(),
-            'samples_trained': len(self.features)
+            'samples_trained': len(self.features),
         }
-        
+
         with open(self.output_path, 'wb') as f:
             pickle.dump(model_data, f)
-        
-        logger.info(f"Model saved to {self.output_path}")
-    
+
+        logger.info(
+            f"[{self.pattern_name}] Model saved to {self.output_path}"
+        )
+
     def save_training_report(self, metrics: Dict[str, float]) -> None:
         """
-        Save a training report with metrics and configuration.
-        
+        Save a JSON training report.
+
         Args:
             metrics: Training metrics dictionary.
         """
         report_path = self.output_path.with_suffix('.json')
-        
+
         report = {
+            'pattern': self.pattern_name,
             'trained_at': datetime.now().isoformat(),
             'samples_total': len(self.features) + len(self.failed_images),
             'samples_successful': len(self.features),
@@ -360,92 +390,198 @@ class KoiPriceTrainer:
             'feature_coefficients': dict(
                 zip(self.feature_names, self.model.coef_.tolist())
             ) if self.model else {},
-            'intercept': float(self.model.intercept_) if self.model else 0.0,
-            'failed_images': self.failed_images
+            'intercept': (
+                float(self.model.intercept_) if self.model else 0.0
+            ),
+            'failed_images': self.failed_images,
         }
-        
+
         with open(report_path, 'w') as f:
             json.dump(report, f, indent=2)
-        
-        logger.info(f"Training report saved to {report_path}")
+
+        logger.info(
+            f"[{self.pattern_name}] Training report saved to {report_path}"
+        )
 
 
-def train_model(
+# ========================================================================= #
+#  Public helpers
+# ========================================================================= #
+
+def train_pattern_model(
+    pattern_name: str,
     csv_path: str,
+    images_dir: str,
     output_path: Optional[str] = None,
-    validation_split: float = 0.2
+    validation_split: float = 0.2,
 ) -> Dict[str, float]:
     """
-    Main function to train the price prediction model.
-    
+    Train a single per-pattern price prediction model.
+
     Args:
-        csv_path: Path to CSV file with training data.
-        output_path: Optional custom output path for model.
+        pattern_name: One of 'ogon', 'showa', 'kohaku'.
+        csv_path: Path to the CSV with columns ``image_filename``, ``price``.
+        images_dir: Directory containing training images for this pattern.
+        output_path: Optional custom output path for the model file.
         validation_split: Fraction for validation (default 0.2).
-        
+
     Returns:
         Training metrics dictionary.
     """
-    trainer = KoiPriceTrainer(
-        output_path=Path(output_path) if output_path else None
+    trainer = KoiPatternTrainer(
+        pattern_name=pattern_name,
+        images_dir=Path(images_dir),
+        output_path=Path(output_path) if output_path else None,
     )
-    
-    # Load data
+
     num_samples = trainer.load_training_data(csv_path)
-    
+
     if num_samples == 0:
-        raise ValueError("No valid training samples found.")
-    
-    # Train model
+        raise ValueError(
+            f"[{pattern_name}] No valid training samples found."
+        )
+
     metrics = trainer.train(validation_split=validation_split)
-    
-    # Save model and report
+
     trainer.save_model()
     trainer.save_training_report(metrics)
-    
+
     return metrics
 
 
+def train_all_patterns(
+    pattern_configs: Dict[str, Dict[str, str]],
+    validation_split: float = 0.2,
+) -> Dict[str, Dict[str, float]]:
+    """
+    Train models for all koi patterns.
+
+    Args:
+        pattern_configs: Mapping of pattern name to config dict with keys
+            ``csv_path`` and ``images_dir``.
+        validation_split: Fraction for validation (default 0.2).
+
+    Returns:
+        Mapping of pattern name to training metrics dict.
+    """
+    all_metrics: Dict[str, Dict[str, float]] = {}
+
+    for pattern in KOI_PATTERNS:
+        cfg = pattern_configs.get(pattern)
+        if cfg is None:
+            logger.warning(
+                f"No config supplied for pattern '{pattern}' — skipping."
+            )
+            continue
+
+        logger.info(f"\n{'=' * 60}")
+        logger.info(f"Training model for pattern: {pattern}")
+        logger.info(f"{'=' * 60}")
+
+        metrics = train_pattern_model(
+            pattern_name=pattern,
+            csv_path=cfg['csv_path'],
+            images_dir=cfg['images_dir'],
+            validation_split=validation_split,
+        )
+        all_metrics[pattern] = metrics
+
+    return all_metrics
+
+
+# ========================================================================= #
+#  CLI
+# ========================================================================= #
+
 def main():
-    """CLI entry point for training."""
+    """CLI entry point for per-pattern training."""
     parser = argparse.ArgumentParser(
-        description="Train koi fish price prediction model"
+        description=(
+            "Train koi fish price prediction models — "
+            "one linear regression per pattern type."
+        )
     )
+
+    # Ogon
     parser.add_argument(
-        '--csv', '-c',
+        '--ogon-csv',
         required=True,
-        help="Path to CSV file with columns: image_filename, price"
+        help="Path to CSV for ogon (columns: image_filename, price)",
     )
     parser.add_argument(
-        '--output', '-o',
-        default=None,
-        help="Output path for trained model (default: models/linear.pkl)"
+        '--ogon-images',
+        required=True,
+        help="Directory containing ogon training images",
     )
+
+    # Showa
+    parser.add_argument(
+        '--showa-csv',
+        required=True,
+        help="Path to CSV for showa (columns: image_filename, price)",
+    )
+    parser.add_argument(
+        '--showa-images',
+        required=True,
+        help="Directory containing showa training images",
+    )
+
+    # Kohaku
+    parser.add_argument(
+        '--kohaku-csv',
+        required=True,
+        help="Path to CSV for kohaku (columns: image_filename, price)",
+    )
+    parser.add_argument(
+        '--kohaku-images',
+        required=True,
+        help="Directory containing kohaku training images",
+    )
+
+    # Optional
     parser.add_argument(
         '--val-split', '-v',
         type=float,
         default=0.2,
-        help="Validation split fraction (default: 0.2)"
+        help="Validation split fraction (default: 0.2)",
     )
-    
+
     args = parser.parse_args()
-    
+
+    pattern_configs = {
+        'ogon': {
+            'csv_path': args.ogon_csv,
+            'images_dir': args.ogon_images,
+        },
+        'showa': {
+            'csv_path': args.showa_csv,
+            'images_dir': args.showa_images,
+        },
+        'kohaku': {
+            'csv_path': args.kohaku_csv,
+            'images_dir': args.kohaku_images,
+        },
+    }
+
     try:
-        metrics = train_model(
-            csv_path=args.csv,
-            output_path=args.output,
-            validation_split=args.val_split
+        all_metrics = train_all_patterns(
+            pattern_configs=pattern_configs,
+            validation_split=args.val_split,
         )
-        
-        print("\n" + "=" * 50)
-        print("Training Complete!")
-        print("=" * 50)
-        print(f"R² Score:         {metrics['r2_score']:.4f}")
-        print(f"MAE:              {metrics['mae']:.2f}")
-        print(f"RMSE:             {metrics['rmse']:.2f}")
-        print(f"Samples Trained:  {metrics['samples_trained']}")
-        print("=" * 50)
-        
+
+        print("\n" + "=" * 60)
+        print("Training Complete — All Patterns")
+        print("=" * 60)
+
+        for pattern, metrics in all_metrics.items():
+            print(f"\n  [{pattern.upper()}]")
+            print(f"    R² Score:         {metrics['r2_score']:.4f}")
+            print(f"    MAE:              {metrics['mae']:.2f}")
+            print(f"    RMSE:             {metrics['rmse']:.2f}")
+            print(f"    Samples Trained:  {metrics['samples_trained']}")
+
+        print("\n" + "=" * 60)
+
     except Exception as e:
         logger.error(f"Training failed: {e}")
         sys.exit(1)

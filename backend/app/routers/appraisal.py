@@ -10,10 +10,15 @@ from typing import Optional
 
 import cv2
 import numpy as np
-from fastapi import APIRouter, File, HTTPException, UploadFile, Query
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 
-from app.schemas.appraisal import AppraisalResponse, TrainingResponse, TrainingMetrics
+from app.schemas.appraisal import (
+    AppraisalResponse,
+    TrainingRequest,
+    TrainingResponse,
+    PatternTrainingMetrics,
+)
 from app.services.size_detection import detect_fish_size
 from app.services.pattern_detection import classify_koi_pattern
 from app.services.color_analysis import analyze_fish_colors
@@ -124,14 +129,13 @@ async def appraise_koi(image: UploadFile = File(...)) -> AppraisalResponse:
             logger.warning(f"Symmetry analysis failed: {e}")
             symmetry_score = 0.5
         
-        # 5. Price prediction
+        # 5. Price prediction (uses per-pattern model)
         predicted_price = 0.0
         predictor = get_price_predictor()
         
-        if predictor.is_model_available():
+        if predictor.is_model_available(pattern_name):
             try:
                 predicted_price = predictor.predict(
-                    size_cm=size_cm,
                     pattern_name=pattern_name,
                     pattern_confidence=pattern_confidence,
                     color_white_pct=color_metrics["white_pct"],
@@ -144,7 +148,9 @@ async def appraise_koi(image: UploadFile = File(...)) -> AppraisalResponse:
                 logger.warning(f"Price prediction failed: {e}")
                 predicted_price = 0.0
         else:
-            logger.info("Price prediction model not trained yet")
+            logger.info(
+                f"Price prediction model for '{pattern_name}' not trained yet"
+            )
         
         return AppraisalResponse(
             size_cm=size_cm,
@@ -169,59 +175,83 @@ async def appraise_koi(image: UploadFile = File(...)) -> AppraisalResponse:
 
 
 @router.post("/train", response_model=TrainingResponse)
-async def trigger_training(
-    csv_path: str = Query(..., description="Path to CSV file with training data")
-) -> TrainingResponse:
+async def trigger_training(body: TrainingRequest) -> TrainingResponse:
     """
-    Trigger training of the linear regression model.
-    
-    Args:
-        csv_path: Path to the CSV file containing training data.
-                  CSV must have columns: image_filename, price
-        
+    Trigger per-pattern training of linear regression models.
+
+    Accepts a JSON body with ``ogon``, ``showa``, and ``kohaku``
+    configs, each containing ``csv_path`` and ``images_dir``.
+
     Returns:
-        Training status and metrics.
+        Training status and per-pattern metrics.
     """
     try:
         # Import trainer here to avoid circular imports
-        from app.train import train_model
-        
-        logger.info(f"Starting training with CSV: {csv_path}")
-        
-        metrics = train_model(csv_path)
-        
+        from app.train import train_all_patterns
+
+        pattern_configs = {}
+        for name, cfg in [
+            ("ogon", body.ogon),
+            ("showa", body.showa),
+            ("kohaku", body.kohaku),
+        ]:
+            if cfg is not None:
+                pattern_configs[name] = {
+                    "csv_path": cfg.csv_path,
+                    "images_dir": cfg.images_dir,
+                }
+
+        if not pattern_configs:
+            return TrainingResponse(
+                status="error",
+                pattern_metrics=None,
+                error="At least one pattern config must be provided.",
+            )
+
+        logger.info(
+            f"Starting per-pattern training for: "
+            f"{list(pattern_configs.keys())}"
+        )
+
+        all_metrics = train_all_patterns(pattern_configs)
+
+        pattern_metrics = {
+            pattern: PatternTrainingMetrics(
+                r2_score=m["r2_score"],
+                mae=m["mae"],
+                mse=m["mse"],
+                rmse=m["rmse"],
+                samples_trained=m["samples_trained"],
+            )
+            for pattern, m in all_metrics.items()
+        }
+
         return TrainingResponse(
             status="success",
-            metrics=TrainingMetrics(
-                r2_score=metrics["r2_score"],
-                mae=metrics["mae"],
-                mse=metrics["mse"],
-                rmse=metrics["rmse"],
-                samples_trained=metrics["samples_trained"]
-            ),
-            error=None
+            pattern_metrics=pattern_metrics,
+            error=None,
         )
-        
+
     except FileNotFoundError as e:
         logger.error(f"Training file not found: {e}")
         return TrainingResponse(
             status="error",
-            metrics=None,
-            error=f"File not found: {str(e)}"
+            pattern_metrics=None,
+            error=f"File not found: {str(e)}",
         )
     except ValueError as e:
         logger.error(f"Training validation error: {e}")
         return TrainingResponse(
             status="error",
-            metrics=None,
-            error=str(e)
+            pattern_metrics=None,
+            error=str(e),
         )
     except Exception as e:
         logger.exception(f"Training failed: {e}")
         return TrainingResponse(
             status="error",
-            metrics=None,
-            error=f"Training failed: {str(e)}"
+            pattern_metrics=None,
+            error=f"Training failed: {str(e)}",
         )
 
 

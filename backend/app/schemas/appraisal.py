@@ -4,7 +4,7 @@ Appraisal Schemas
 Pydantic models for request/response validation.
 """
 
-from typing import Optional
+from typing import Dict, Optional
 
 from pydantic import BaseModel, Field
 
@@ -72,9 +72,60 @@ class AppraisalResponse(BaseModel):
         }
 
 
-class TrainingMetrics(BaseModel):
-    """Metrics from model training."""
-    
+# ---- Training schemas ---- #
+
+
+class PatternTrainingConfig(BaseModel):
+    """Training configuration for a single pattern type."""
+
+    csv_path: str = Field(
+        ..., description="Path to CSV file (columns: image_filename, price)"
+    )
+    images_dir: str = Field(
+        ..., description="Directory containing training images for this pattern"
+    )
+
+
+class TrainingRequest(BaseModel):
+    """
+    Request model for per-pattern training.
+
+    Supply config for each pattern you want to train.
+    At least one pattern must be provided.
+    """
+
+    ogon: Optional[PatternTrainingConfig] = Field(
+        None, description="Ogon training config"
+    )
+    showa: Optional[PatternTrainingConfig] = Field(
+        None, description="Showa training config"
+    )
+    kohaku: Optional[PatternTrainingConfig] = Field(
+        None, description="Kohaku training config"
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "ogon": {
+                    "csv_path": "images/ogon/training.csv",
+                    "images_dir": "images/ogon",
+                },
+                "showa": {
+                    "csv_path": "images/showa/training.csv",
+                    "images_dir": "images/showa",
+                },
+                "kohaku": {
+                    "csv_path": "images/kohaku/training.csv",
+                    "images_dir": "images/kohaku",
+                },
+            }
+        }
+
+
+class PatternTrainingMetrics(BaseModel):
+    """Metrics from a single pattern's model training."""
+
     r2_score: float = Field(..., description="R-squared score")
     mae: float = Field(..., description="Mean Absolute Error")
     mse: float = Field(..., description="Mean Squared Error")
@@ -83,8 +134,10 @@ class TrainingMetrics(BaseModel):
 
 
 class TrainingResponse(BaseModel):
-    """Response model for training endpoint."""
-    
+    """Response model for the per-pattern training endpoint."""
+
     status: str = Field(..., description="Training status")
-    metrics: Optional[TrainingMetrics] = Field(None, description="Training metrics if successful")
+    pattern_metrics: Optional[Dict[str, PatternTrainingMetrics]] = Field(
+        None, description="Per-pattern training metrics (keyed by pattern name)"
+    )
     error: Optional[str] = Field(None, description="Error message if failed")
