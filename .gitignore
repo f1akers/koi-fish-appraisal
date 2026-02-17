@@ -69,9 +69,11 @@ dist/
 # backend/models/*.pkl
 
 # Training images (typically too large for git)
-backend/images/*.jpg
-backend/images/*.jpeg
-backend/images/*.png
+backend/images/**/*.jpg
+backend/images/**/*.jpeg
+backend/images/**/*.png
+backend/images/**.csv
+!backend/images/sample_training.csv
 !backend/images/.gitkeep
 
 # Jupyter notebooks checkpoints
