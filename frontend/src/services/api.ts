@@ -4,7 +4,7 @@
  * Functions for communicating with the backend API.
  */
 
-import type { AppraisalResult } from '../types';
+import type { AppraisalResult, TrainingRequest, TrainingResponse } from '../types';
 
 // Use environment variable for API base URL, fallback to proxy path for development
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -43,15 +43,15 @@ export async function checkHealth(): Promise<{ status: string; version: string }
 }
 
 /**
- * Trigger model training (admin only)
+ * Trigger per-pattern model training (admin only)
  */
-export async function triggerTraining(csvPath: string): Promise<{ status: string; message: string }> {
+export async function triggerTraining(request: TrainingRequest): Promise<TrainingResponse> {
     const response = await fetch(`${API_BASE}/train`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ csv_path: csvPath }),
+        body: JSON.stringify(request),
     });
 
     if (!response.ok) {

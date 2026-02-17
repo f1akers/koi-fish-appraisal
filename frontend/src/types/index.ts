@@ -68,14 +68,40 @@ export interface CameraState {
 }
 
 /**
- * Training metrics response
+ * Per-pattern training metrics
  */
-export interface TrainingMetrics {
+export interface PatternTrainingMetrics {
     r2_score: number;
     mae: number;
     mse: number;
     rmse: number;
     samples_trained: number;
+}
+
+/**
+ * Training response with per-pattern metrics
+ */
+export interface TrainingResponse {
+    status: string;
+    pattern_metrics: Record<string, PatternTrainingMetrics> | null;
+    error: string | null;
+}
+
+/**
+ * Training request config for a single pattern
+ */
+export interface PatternTrainingConfig {
+    csv_path: string;
+    images_dir: string;
+}
+
+/**
+ * Training request body (per-pattern)
+ */
+export interface TrainingRequest {
+    ogon?: PatternTrainingConfig;
+    showa?: PatternTrainingConfig;
+    kohaku?: PatternTrainingConfig;
 }
 
 /**

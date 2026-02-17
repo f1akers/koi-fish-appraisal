@@ -1,0 +1,822 @@
+{
+  "pattern": "ogon",
+  "trained_at": "2026-02-17T17:15:47.698781",
+  "samples_total": 335,
+  "samples_successful": 138,
+  "samples_failed": 197,
+  "metrics": {
+    "r2_score": 0.16975580656547662,
+    "mae": 2942.098673848147,
+    "mse": 22209972.023508288,
+    "rmse": 4712.745699006927,
+    "samples_trained": 110,
+    "samples_validated": 28
+  },
+  "feature_names": [
+    "pattern_confidence",
+    "color_white_pct",
+    "color_red_pct",
+    "color_black_pct",
+    "color_quality_score",
+    "symmetry_score"
+  ],
+  "feature_coefficients": {
+    "pattern_confidence": -389.15622089344134,
+    "color_white_pct": -710.3276414447467,
+    "color_red_pct": -209.14169728150557,
+    "color_black_pct": -19.446370052636105,
+    "color_quality_score": 1545.6236705622675,
+    "symmetry_score": 0.0
+  },
+  "intercept": 2260.1818181818167,
+  "failed_images": [
+    [
+      "cellmage_0_0.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_2.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_3.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_4.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_5.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_6.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_7.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_8.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_9.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_10.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_11.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_12.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_13.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_14.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_15.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_16.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_17.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_18.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_19.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_20.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_21.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_22.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_23.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_24.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_25.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_26.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_28.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_29.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_30.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_31.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_32.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_33.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_34.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_35.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_36.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_37.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_38.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_39.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_40.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_41.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_42.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_43.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_44.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_45.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_46.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_47.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_48.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_49.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_50.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_51.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_52.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_53.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_54.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_55.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_56.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_57.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_58.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_59.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_60.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_61.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_62.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_63.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_64.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_65.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_66.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_67.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_68.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_69.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_70.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_71.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_72.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_73.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_74.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_75.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_76.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_77.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_78.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_79.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_80.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_81.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_82.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_83.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_84.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_85.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_86.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_87.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_88.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_89.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_90.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_91.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_92.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_93.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_94.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_95.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_96.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_97.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_98.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_99.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_100.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_101.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_102.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_103.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_104.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_105.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_106.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_107.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_108.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_109.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_110.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_111.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_112.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_113.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_114.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_115.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_116.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_117.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_118.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_119.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_120.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_121.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_122.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_124.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_125.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_126.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_127.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_128.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_129.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_130.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_131.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_132.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_133.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_134.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_135.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_136.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_137.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_138.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_139.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_140.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_141.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_142.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_143.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_144.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_145.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_146.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_147.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_148.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_149.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_150.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_151.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_152.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_153.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_154.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_155.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_156.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_157.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_158.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_159.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_160.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_161.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_162.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_163.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_164.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_165.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_166.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_167.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_168.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_169.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_170.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_171.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_172.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_173.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_174.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_175.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_176.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_177.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_178.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_179.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_180.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_181.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_182.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_183.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_184.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_185.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_186.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_187.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_188.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_189.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_190.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_191.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_192.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_193.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_194.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_195.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_196.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_197.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_198.jpg",
+      "File not found"
+    ],
+    [
+      "cellmage_0_199.jpg",
+      "File not found"
+    ]
+  ]
+}
