@@ -13,6 +13,7 @@ import numpy as np
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 
+from app.config import KOI_PATTERNS
 from app.schemas.appraisal import (
     AppraisalResponse,
     TrainingRequest,
@@ -133,7 +134,12 @@ async def appraise_koi(image: UploadFile = File(...)) -> AppraisalResponse:
         predicted_price = 0.0
         predictor = get_price_predictor()
         
-        if predictor.is_model_available(pattern_name):
+        if pattern_name not in KOI_PATTERNS:
+            logger.info(
+                f"Pattern '{pattern_name}' is not a known type — "
+                "skipping price prediction"
+            )
+        elif predictor.is_model_available(pattern_name):
             try:
                 predicted_price = predictor.predict(
                     pattern_name=pattern_name,
@@ -179,7 +185,7 @@ async def trigger_training(body: TrainingRequest) -> TrainingResponse:
     """
     Trigger per-pattern training of linear regression models.
 
-    Accepts a JSON body with ``ogon``, ``showa``, and ``kohaku``
+    Accepts a JSON body with ``ogon``, ``sanke``, and ``kohaku``
     configs, each containing ``csv_path`` and ``images_dir``.
 
     Returns:
@@ -192,7 +198,7 @@ async def trigger_training(body: TrainingRequest) -> TrainingResponse:
         pattern_configs = {}
         for name, cfg in [
             ("ogon", body.ogon),
-            ("showa", body.showa),
+            ("sanke", body.sanke),
             ("kohaku", body.kohaku),
         ]:
             if cfg is not None:

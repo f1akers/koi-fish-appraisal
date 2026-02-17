@@ -3,7 +3,7 @@ Services package
 
 Contains all business logic services for koi fish appraisal:
 - Size Detection: Calculates fish size using segmentation and reference coin
-- Pattern Detection: Classifies koi patterns (Ogon, Showa, Kohaku)
+- Pattern Detection: Classifies koi patterns (Ogon, Sanke, Kohaku)
 - Color Analysis: Quantifies color distribution and quality
 - Symmetry Analysis: Measures bilateral symmetry
 - Price Prediction: Predicts price using trained linear regression model

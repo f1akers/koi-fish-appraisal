@@ -30,7 +30,7 @@ class ColorMetrics(BaseModel):
 class PatternMetrics(BaseModel):
     """Pattern recognition metrics."""
     
-    name: str = Field(..., description="Pattern name (ogon, showa, kohaku)")
+    name: str = Field(..., description="Pattern name (ogon, sanke, kohaku)")
     confidence: float = Field(..., ge=0, le=1, description="Confidence score")
 
 
@@ -97,8 +97,8 @@ class TrainingRequest(BaseModel):
     ogon: Optional[PatternTrainingConfig] = Field(
         None, description="Ogon training config"
     )
-    showa: Optional[PatternTrainingConfig] = Field(
-        None, description="Showa training config"
+    sanke: Optional[PatternTrainingConfig] = Field(
+        None, description="Sanke training config"
     )
     kohaku: Optional[PatternTrainingConfig] = Field(
         None, description="Kohaku training config"
@@ -111,9 +111,9 @@ class TrainingRequest(BaseModel):
                     "csv_path": "images/ogon/training.csv",
                     "images_dir": "images/ogon",
                 },
-                "showa": {
-                    "csv_path": "images/showa/training.csv",
-                    "images_dir": "images/showa",
+                "sanke": {
+                    "csv_path": "images/sanke/training.csv",
+                    "images_dir": "images/sanke",
                 },
                 "kohaku": {
                     "csv_path": "images/kohaku/training.csv",

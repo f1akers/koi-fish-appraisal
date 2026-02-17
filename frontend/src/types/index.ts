@@ -16,7 +16,7 @@ export interface ColorMetrics {
  * Pattern recognition result
  */
 export interface PatternMetrics {
-    name: 'ogon' | 'showa' | 'kohaku' | 'unknown';
+    name: 'ogon' | 'sanke' | 'kohaku' | 'unknown';
     confidence: number;
 }
 
@@ -100,7 +100,7 @@ export interface PatternTrainingConfig {
  */
 export interface TrainingRequest {
     ogon?: PatternTrainingConfig;
-    showa?: PatternTrainingConfig;
+    sanke?: PatternTrainingConfig;
     kohaku?: PatternTrainingConfig;
 }
 

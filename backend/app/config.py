@@ -209,7 +209,7 @@ def get_coin_diameter_mm(coin_class: str) -> float:
 # Must match the trained pattern classification model (koi-pattern.pt)
 # =============================================================================
 
-KOI_PATTERNS: list[str] = ["ogon", "showa", "kohaku"]
+KOI_PATTERNS: list[str] = ["ogon", "sanke", "kohaku"]
 
 
 # =============================================================================
@@ -222,6 +222,6 @@ MODEL_PATHS = {
     "koi_pattern": settings.MODEL_PATH / "koi-pattern.pt",
     # Per-pattern linear regression models
     "linear_ogon": settings.MODEL_PATH / "linear_ogon.pkl",
-    "linear_showa": settings.MODEL_PATH / "linear_showa.pkl",
+    "linear_sanke": settings.MODEL_PATH / "linear_sanke.pkl",
     "linear_kohaku": settings.MODEL_PATH / "linear_kohaku.pkl",
 }

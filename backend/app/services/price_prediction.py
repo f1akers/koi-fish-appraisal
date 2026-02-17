@@ -2,7 +2,7 @@
 Price Prediction Service
 
 Predicts koi fish prices using per-pattern trained linear regression models.
-Each koi pattern (ogon, showa, kohaku) has its own dedicated model.
+Each koi pattern (ogon, sanke, kohaku) has its own dedicated model.
 """
 
 import logging
@@ -22,7 +22,7 @@ class PricePredictor:
     Predicts koi fish prices based on extracted metrics
     using pattern-specific linear regression models.
 
-    One model is loaded per pattern type (ogon, showa, kohaku).
+    One model is loaded per pattern type (ogon, sanke, kohaku).
     The correct model is selected at prediction time based on
     the detected pattern name.
     """
@@ -52,7 +52,7 @@ class PricePredictor:
         Load (or return cached) model data for a pattern.
 
         Args:
-            pattern_name: One of 'ogon', 'showa', 'kohaku'.
+            pattern_name: One of 'ogon', 'sanke', 'kohaku'.
 
         Returns:
             Dict with keys 'model', 'scaler', 'feature_names'.
@@ -109,7 +109,7 @@ class PricePredictor:
         Size is not used because training images lack reference coins.
 
         Args:
-            pattern_name: Pattern name (ogon, showa, kohaku).
+            pattern_name: Pattern name (ogon, sanke, kohaku).
             pattern_confidence: Pattern classification confidence.
             color_white_pct: Percentage of white color.
             color_red_pct: Percentage of red color.
@@ -195,7 +195,7 @@ class PricePredictor:
         Get the feature importance (coefficients) for a pattern's model.
 
         Args:
-            pattern_name: One of 'ogon', 'showa', 'kohaku'.
+            pattern_name: One of 'ogon', 'sanke', 'kohaku'.
 
         Returns:
             Dictionary mapping feature names to their coefficients.

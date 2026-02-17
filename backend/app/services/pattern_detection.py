@@ -2,7 +2,7 @@
 Pattern Recognition Service
 
 Classifies koi fish patterns into predefined categories
-(Ogon, Showa, Kohaku) using a trained YOLO classification model.
+(Ogon, Sanke, Kohaku) using a trained YOLO classification model.
 """
 
 import logging

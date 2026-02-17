@@ -3,12 +3,12 @@ Linear Regression Trainer (Per-Pattern)
 
 Training script for koi fish price prediction models.
 Trains separate linear regression models for each koi pattern type
-(ogon, showa, kohaku) using pattern-specific training data.
+(ogon, sanke, kohaku) using pattern-specific training data.
 
 Usage:
     python -m app.train \
         --ogon-csv <path> --ogon-images <dir> \
-        --showa-csv <path> --showa-images <dir> \
+        --sanke-csv <path> --sanke-images <dir> \
         --kohaku-csv <path> --kohaku-images <dir>
 """
 
@@ -76,7 +76,7 @@ class KoiPatternTrainer:
         Initialize the per-pattern trainer.
 
         Args:
-            pattern_name: One of 'ogon', 'showa', 'kohaku'.
+            pattern_name: One of 'ogon', 'sanke', 'kohaku'.
             images_dir: Directory containing this pattern's training images.
             output_path: Path to save the trained model (.pkl).
         """
@@ -419,7 +419,7 @@ def train_pattern_model(
     Train a single per-pattern price prediction model.
 
     Args:
-        pattern_name: One of 'ogon', 'showa', 'kohaku'.
+        pattern_name: One of 'ogon', 'sanke', 'kohaku'.
         csv_path: Path to the CSV with columns ``image_filename``, ``price``.
         images_dir: Directory containing training images for this pattern.
         output_path: Optional custom output path for the model file.
@@ -514,16 +514,16 @@ def main():
         help="Directory containing ogon training images",
     )
 
-    # Showa
+    # Sanke
     parser.add_argument(
-        '--showa-csv',
+        '--sanke-csv',
         required=True,
-        help="Path to CSV for showa (columns: image_filename, price)",
+        help="Path to CSV for sanke (columns: image_filename, price)",
     )
     parser.add_argument(
-        '--showa-images',
+        '--sanke-images',
         required=True,
-        help="Directory containing showa training images",
+        help="Directory containing sanke training images",
     )
 
     # Kohaku
@@ -553,9 +553,9 @@ def main():
             'csv_path': args.ogon_csv,
             'images_dir': args.ogon_images,
         },
-        'showa': {
-            'csv_path': args.showa_csv,
-            'images_dir': args.showa_images,
+        'sanke': {
+            'csv_path': args.sanke_csv,
+            'images_dir': args.sanke_images,
         },
         'kohaku': {
             'csv_path': args.kohaku_csv,
