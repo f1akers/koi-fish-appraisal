@@ -31,6 +31,6 @@
 
 ## Notes
 
-- Spec references K-Means, LAB colorspace, and median/majority-vote as algorithmic approaches — these are part of the user's stated requirements and describe the *what* (approach), not the *how* (implementation). Kept intentionally per user specification.
+- Spec references K-Means, LAB colorspace, and median/majority-vote as algorithmic approaches — these are part of the user's stated requirements and describe the _what_ (approach), not the _how_ (implementation). Kept intentionally per user specification.
 - No [NEEDS CLARIFICATION] markers were needed. All ambiguities were resolved with reasonable defaults documented in the Assumptions section.
 - All items pass validation. Spec is ready for `/speckit.clarify` or `/speckit.plan`.

@@ -96,8 +96,8 @@ class SymmetryAnalyzer:
         # Adjust angle to rotate to vertical
         rotation_angle = 90 - angle_degrees
         
-        # Get center of mass
-        center = tuple(mean[0].astype(int))
+        # Get center of mass (must be plain Python floats for OpenCV)
+        center = (float(mean[0, 0]), float(mean[0, 1]))
         
         # Create rotation matrix
         h, w = image.shape[:2]

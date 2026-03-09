@@ -44,7 +44,7 @@ timeout /t 3 /nobreak >nul
 
 REM Start Frontend Server (Production Preview)
 echo [INFO] Starting Frontend Server (Vite Preview)...
-start "Koi Frontend" cmd /k "cd /d %SCRIPT_DIR%frontend && npm run preview -- --host 0.0.0.0 --port 5173"
+start "Koi Frontend" cmd /k "cd /d %SCRIPT_DIR%frontend && npm run dev -- --host 0.0.0.0 --port 5173"
 
 echo.
 echo ========================================

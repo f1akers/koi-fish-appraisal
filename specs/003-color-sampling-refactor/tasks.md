@@ -104,12 +104,12 @@
 
 ### Implementation
 
-- [ ] T016 [P] [US2] Update frontend/src/types/index.ts — remove `ColorMetrics` interface, `PatternTrainingMetrics` interface, `TrainingResponse` interface, `PatternTrainingConfig` interface, `TrainingRequest` interface; update `AppraisalResult` interface to remove `color_white_pct`, `color_red_pct`, `color_black_pct`, `color_quality_score`, `predicted_price` and add `color_proportions: Record<string, number>`; update `AppraisalHistoryItem` if it references removed fields
-- [ ] T017 [P] [US2] Update frontend/src/services/api.ts — remove `triggerTraining()` function and its `TrainingRequest`/`TrainingResponse` type imports
-- [ ] T018 [US4] Redesign frontend/src/components/ResultsPanel.tsx — remove `formatPrice` function, remove "Price Hero Card" gradient div and all price display elements, remove "Color Quality" MetricCard; keep Size MetricCard, Pattern MetricCard (name + confidence), Symmetry MetricCard; keep ColorDistribution component (will receive new props in T019)
-- [ ] T019 [US4] Update frontend/src/components/ColorDistribution.tsx — change props from fixed `white_pct/red_pct/black_pct` to accept `colorProportions: Record<string, number>`; render dynamic named color bars for each entry (e.g., "Red: 42%", "White: 35%"); add color-name-to-CSS-color mapping (Red→#DC2626, White→#F5F5F4, Black→#171717, Orange→#EA580C, Yellow→#EAB308, Other→#9CA3AF)
-- [ ] T020 [P] [US2] Update frontend/src/utils/exportCsv.ts — remove `predicted_price` column, remove `color_quality` column, replace fixed `color_white_pct/color_red_pct/color_black_pct` columns with dynamic color proportion columns from `color_proportions` keys
-- [ ] T021 [P] Update frontend/src/App.tsx — change tagline from "AI-Powered Fish Valuation" to "AI-Powered Fish Assessment" on line 81
+- [x] T016 [P] [US2] Update frontend/src/types/index.ts — remove `ColorMetrics` interface, `PatternTrainingMetrics` interface, `TrainingResponse` interface, `PatternTrainingConfig` interface, `TrainingRequest` interface; update `AppraisalResult` interface to remove `color_white_pct`, `color_red_pct`, `color_black_pct`, `color_quality_score`, `predicted_price` and add `color_proportions: Record<string, number>`; update `AppraisalHistoryItem` if it references removed fields
+- [x] T017 [P] [US2] Update frontend/src/services/api.ts — remove `triggerTraining()` function and its `TrainingRequest`/`TrainingResponse` type imports
+- [x] T018 [US4] Redesign frontend/src/components/ResultsPanel.tsx — remove `formatPrice` function, remove "Price Hero Card" gradient div and all price display elements, remove "Color Quality" MetricCard; keep Size MetricCard, Pattern MetricCard (name + confidence), Symmetry MetricCard; keep ColorDistribution component (will receive new props in T019)
+- [x] T019 [US4] Update frontend/src/components/ColorDistribution.tsx — change props from fixed `white_pct/red_pct/black_pct` to accept `colorProportions: Record<string, number>`; render dynamic named color bars for each entry (e.g., "Red: 42%", "White: 35%"); add color-name-to-CSS-color mapping (Red→#DC2626, White→#F5F5F4, Black→#171717, Orange→#EA580C, Yellow→#EAB308, Other→#9CA3AF)
+- [x] T020 [P] [US2] Update frontend/src/utils/exportCsv.ts — remove `predicted_price` column, remove `color_quality` column, replace fixed `color_white_pct/color_red_pct/color_black_pct` columns with dynamic color proportion columns from `color_proportions` keys
+- [x] T021 [P] Update frontend/src/App.tsx — change tagline from "AI-Powered Fish Valuation" to "AI-Powered Fish Assessment" on line 81
 
 **Checkpoint**: Frontend displays criteria-only results. No price UI visible. Dynamic color distribution renders correctly.
 
@@ -119,11 +119,11 @@
 
 **Purpose**: Documentation, cleanup, and end-to-end validation.
 
-- [ ] T022 [P] Update frontend/src/components/index.ts if component export signatures changed (verify barrel exports still work)
-- [ ] T023 [P] Update docs/FEATURES_INDEX.md to reflect color analysis rewrite and price removal
-- [ ] T024 [P] Update docs/features/fish-metrics.md to document new color_proportions output format and multi-sample aggregation
-- [ ] T025 Run frontend lint and build verification — `cd frontend && npm run lint && npm run build`
-- [ ] T026 Run quickstart.md end-to-end validation — start backend (uvicorn), start frontend (vite), submit a koi image, verify response matches contracts/appraise-endpoint.md schema, verify UI shows 4 criteria sections with no price elements
+- [x] T022 [P] Update frontend/src/components/index.ts if component export signatures changed (verify barrel exports still work)
+- [x] T023 [P] Update docs/FEATURES_INDEX.md to reflect color analysis rewrite and price removal
+- [x] T024 [P] Update docs/features/fish-metrics.md to document new color_proportions output format and multi-sample aggregation
+- [x] T025 Run frontend lint and build verification — `cd frontend && npm run lint && npm run build`
+- [x] T026 Run quickstart.md end-to-end validation — start backend (uvicorn), start frontend (vite), submit a koi image, verify response matches contracts/appraise-endpoint.md schema, verify UI shows 4 criteria sections with no price elements
 
 ---
 
