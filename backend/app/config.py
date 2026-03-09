@@ -220,8 +220,30 @@ MODEL_PATHS = {
     "koi_segment": settings.MODEL_PATH / "koi-segment.pt",
     "coin_detect": settings.MODEL_PATH / "coin.pt",
     "koi_pattern": settings.MODEL_PATH / "koi-pattern.pt",
-    # Per-pattern linear regression models
-    "linear_ogon": settings.MODEL_PATH / "linear_ogon.pkl",
-    "linear_sanke": settings.MODEL_PATH / "linear_sanke.pkl",
-    "linear_kohaku": settings.MODEL_PATH / "linear_kohaku.pkl",
 }
+
+
+# =============================================================================
+# Color Analysis Configuration
+# =============================================================================
+
+DEFAULT_K_CLUSTERS: int = 4
+"""Number of K-Means clusters for color analysis (FR-002)."""
+
+COLOR_DISTANCE_THRESHOLD: float = 50.0
+"""Max Euclidean distance in uint8 LAB space for named color mapping."""
+
+DEFAULT_N_SAMPLES: int = 3
+"""Number of inference samples for multi-sample aggregation (FR-009)."""
+
+KMEANS_RANDOM_SEED: int = 42
+"""Fixed seed for reproducible K-Means clustering (SC-002)."""
+
+KOI_COLOR_MAP: dict[str, tuple[int, int, int]] = {
+    "White":  (245, 128, 128),  # Near-neutral, very high lightness (Shiroji)
+    "Red":    (140, 185, 175),  # High a* (red), moderate b* (Hi)
+    "Black":  (30,  128, 128),  # Near-neutral, very low lightness (Sumi)
+    "Orange": (175, 170, 190),  # Moderate-high L*, positive a* and b* (Beni)
+    "Yellow": (220, 118, 200),  # High L*, slight negative a*, strong b* (Ki)
+}
+"""Static LAB centroid lookup table for named koi colors (OpenCV uint8 encoding)."""

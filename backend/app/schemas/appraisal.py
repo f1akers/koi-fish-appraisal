@@ -11,133 +11,51 @@ from pydantic import BaseModel, Field
 
 class AppraisalRequest(BaseModel):
     """Request model for appraisal (used for JSON requests, not file uploads)."""
-    
+
     image_base64: Optional[str] = Field(
         None,
-        description="Base64 encoded image data"
+        description="Base64 encoded image data",
     )
-
-
-class ColorMetrics(BaseModel):
-    """Color analysis metrics."""
-    
-    white_pct: float = Field(..., ge=0, le=100, description="Percentage of white color")
-    red_pct: float = Field(..., ge=0, le=100, description="Percentage of red color")
-    black_pct: float = Field(..., ge=0, le=100, description="Percentage of black color")
-    quality_score: float = Field(..., ge=0, le=1, description="Overall color quality score")
 
 
 class PatternMetrics(BaseModel):
     """Pattern recognition metrics."""
-    
+
     name: str = Field(..., description="Pattern name (ogon, sanke, kohaku)")
     confidence: float = Field(..., ge=0, le=1, description="Confidence score")
 
 
 class AppraisalResponse(BaseModel):
     """Response model for appraisal results."""
-    
+
     # Size metrics
-    size_cm: float = Field(..., ge=0, description="Fish size in centimeters")
-    
+    size_cm: float = Field(..., ge=0, description="Fish size in centimeters (median of N samples)")
+
     # Pattern metrics
-    pattern_name: str = Field(..., description="Detected pattern name")
-    pattern_confidence: float = Field(..., ge=0, le=1, description="Pattern detection confidence")
-    
-    # Color metrics
-    color_white_pct: float = Field(..., ge=0, le=100, description="Percentage of white")
-    color_red_pct: float = Field(..., ge=0, le=100, description="Percentage of red")
-    color_black_pct: float = Field(..., ge=0, le=100, description="Percentage of black")
-    color_quality_score: float = Field(..., ge=0, le=1, description="Color quality score")
-    
+    pattern_name: str = Field(..., description="Detected pattern name (majority vote)")
+    pattern_confidence: float = Field(
+        ..., ge=0, le=1, description="Mean confidence of winning pattern votes"
+    )
+
+    # Color proportions (dynamic named colors)
+    color_proportions: Dict[str, float] = Field(
+        ..., description="Named color to percentage mapping (values 0-100, sum ~100%)"
+    )
+
     # Symmetry metrics
     symmetry_score: float = Field(..., ge=0, le=1, description="Bilateral symmetry score")
-    
-    # Price prediction
-    predicted_price: float = Field(..., ge=0, description="Predicted price")
-    
+
     class Config:
         json_schema_extra = {
             "example": {
                 "size_cm": 25.4,
                 "pattern_name": "kohaku",
-                "pattern_confidence": 0.95,
-                "color_white_pct": 45.2,
-                "color_red_pct": 38.1,
-                "color_black_pct": 16.7,
-                "color_quality_score": 0.85,
+                "pattern_confidence": 0.92,
+                "color_proportions": {
+                    "Red": 42.3,
+                    "White": 35.1,
+                    "Black": 22.6,
+                },
                 "symmetry_score": 0.87,
-                "predicted_price": 85000.0,
             }
         }
-
-
-# ---- Training schemas ---- #
-
-
-class PatternTrainingConfig(BaseModel):
-    """Training configuration for a single pattern type."""
-
-    csv_path: str = Field(
-        ..., description="Path to CSV file (columns: image_filename, price)"
-    )
-    images_dir: str = Field(
-        ..., description="Directory containing training images for this pattern"
-    )
-
-
-class TrainingRequest(BaseModel):
-    """
-    Request model for per-pattern training.
-
-    Supply config for each pattern you want to train.
-    At least one pattern must be provided.
-    """
-
-    ogon: Optional[PatternTrainingConfig] = Field(
-        None, description="Ogon training config"
-    )
-    sanke: Optional[PatternTrainingConfig] = Field(
-        None, description="Sanke training config"
-    )
-    kohaku: Optional[PatternTrainingConfig] = Field(
-        None, description="Kohaku training config"
-    )
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "ogon": {
-                    "csv_path": "images/ogon/training.csv",
-                    "images_dir": "images/ogon",
-                },
-                "sanke": {
-                    "csv_path": "images/sanke/training.csv",
-                    "images_dir": "images/sanke",
-                },
-                "kohaku": {
-                    "csv_path": "images/kohaku/training.csv",
-                    "images_dir": "images/kohaku",
-                },
-            }
-        }
-
-
-class PatternTrainingMetrics(BaseModel):
-    """Metrics from a single pattern's model training."""
-
-    r2_score: float = Field(..., description="R-squared score")
-    mae: float = Field(..., description="Mean Absolute Error")
-    mse: float = Field(..., description="Mean Squared Error")
-    rmse: float = Field(..., description="Root Mean Squared Error")
-    samples_trained: int = Field(..., description="Number of training samples")
-
-
-class TrainingResponse(BaseModel):
-    """Response model for the per-pattern training endpoint."""
-
-    status: str = Field(..., description="Training status")
-    pattern_metrics: Optional[Dict[str, PatternTrainingMetrics]] = Field(
-        None, description="Per-pattern training metrics (keyed by pattern name)"
-    )
-    error: Optional[str] = Field(None, description="Error message if failed")

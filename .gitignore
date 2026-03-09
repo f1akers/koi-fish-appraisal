@@ -84,3 +84,5 @@ backend/images/**.csv
 
 # Vite
 *.local
+
+**/*.rar

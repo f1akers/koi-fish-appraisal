@@ -3,17 +3,20 @@ Pattern Recognition Service
 
 Classifies koi fish patterns into predefined categories
 (Ogon, Sanke, Kohaku) using a trained YOLO classification model.
+
+Includes image augmentation and multi-sample aggregation utilities.
 """
 
 import logging
+from collections import Counter
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import List, Tuple, Optional
 
 import cv2
 import numpy as np
 from ultralytics import YOLO
 
-from app.config import MODEL_PATHS, KOI_PATTERNS
+from app.config import MODEL_PATHS, KOI_PATTERNS, DEFAULT_N_SAMPLES
 
 logger = logging.getLogger(__name__)
 
@@ -202,3 +205,107 @@ def classify_koi_pattern(
     """
     detector = get_pattern_detector()
     return detector.classify_pattern(image, mask)
+
+
+# =============================================================================
+# Image Augmentation
+# =============================================================================
+
+
+def augment_image(image: np.ndarray, seed: int) -> np.ndarray:
+    """
+    Apply mild augmentation to an image for multi-sample inference.
+
+    Augmentations: brightness/contrast jitter (+-10%), small rotation (+-5 deg),
+    50% horizontal flip. seed=0 returns the original unaugmented image.
+
+    Args:
+        image: Input image (BGR numpy array).
+        seed: Random seed. 0 returns the original image unmodified.
+
+    Returns:
+        Augmented (or original) image as numpy array.
+    """
+    if seed == 0:
+        return image
+
+    rng = np.random.default_rng(seed)
+
+    # Brightness / contrast jitter
+    alpha = rng.uniform(0.9, 1.1)   # contrast
+    beta = rng.uniform(-10, 10)      # brightness
+    augmented = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
+
+    # Small rotation (+-5 degrees)
+    angle = rng.uniform(-5, 5)
+    h, w = augmented.shape[:2]
+    M = cv2.getRotationMatrix2D((w / 2, h / 2), angle, 1.0)
+    augmented = cv2.warpAffine(augmented, M, (w, h), borderMode=cv2.BORDER_REFLECT)
+
+    # 50% horizontal flip
+    if rng.random() > 0.5:
+        augmented = cv2.flip(augmented, 1)
+
+    return augmented
+
+
+# =============================================================================
+# Multi-Sample Pattern Aggregation
+# =============================================================================
+
+
+def classify_koi_pattern_multisample(
+    image: np.ndarray,
+    mask: Optional[np.ndarray] = None,
+    n_samples: int = DEFAULT_N_SAMPLES,
+) -> Tuple[str, float]:
+    """
+    Classify koi pattern using multiple augmented samples and majority vote.
+
+    Generates *n_samples* augmented variants (seed 0 = original), runs pattern
+    classification on each, then aggregates via majority vote for the pattern
+    name and mean confidence of the winning votes. Ties are broken by highest
+    mean confidence.
+
+    Args:
+        image: Input image (BGR numpy array).
+        mask: Optional segmentation mask.
+        n_samples: Number of inference samples (1 = single-pass, no augmentation).
+
+    Returns:
+        Tuple of (pattern_name, pattern_confidence).
+    """
+    if n_samples <= 1:
+        return classify_koi_pattern(image, mask)
+
+    detector = get_pattern_detector()
+    results: List[Tuple[str, float]] = []
+
+    for i in range(n_samples):
+        aug_img = augment_image(image, seed=i)
+        name, conf = detector.classify_pattern(aug_img, mask)
+        results.append((name, conf))
+        logger.debug(f"Sample {i}: pattern={name}, confidence={conf:.3f}")
+
+    # Majority vote
+    vote_counts = Counter(name for name, _ in results)
+    max_votes = max(vote_counts.values())
+
+    # Candidates tied at max votes
+    tied = [name for name, cnt in vote_counts.items() if cnt == max_votes]
+
+    # Break ties by highest mean confidence
+    best_name = None
+    best_mean_conf = -1.0
+    for candidate in tied:
+        confs = [conf for name, conf in results if name == candidate]
+        mean_conf = float(np.mean(confs))
+        if mean_conf > best_mean_conf:
+            best_mean_conf = mean_conf
+            best_name = candidate
+
+    logger.info(
+        f"Multi-sample pattern ({n_samples} runs): "
+        f"{best_name} (confidence={best_mean_conf:.3f}, votes={vote_counts})"
+    )
+    return best_name, best_mean_conf

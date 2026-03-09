@@ -3,15 +3,17 @@
  */
 
 import { useState, useCallback } from 'react';
-import { CameraCapture, ResultsPanel } from './components';
+import { CameraCapture, FileUpload, ResultsPanel } from './components';
 import { appraiseImage } from './services/api';
 import { downloadCSV } from './utils/exportCsv';
 import type { AppraisalResult, AppraisalHistoryItem } from './types';
 
 type AppView = 'camera' | 'results';
+type InputMode = 'camera' | 'upload';
 
 function App() {
   const [view, setView] = useState<AppView>('camera');
+  const [inputMode, setInputMode] = useState<InputMode>('camera');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AppraisalResult | null>(null);
@@ -112,10 +114,45 @@ function App() {
           </div>
         )}
 
-        {/* Camera View */}
+        {/* Camera / Upload View */}
         {view === 'camera' && (
           <div className="animate-fade-in">
-            <CameraCapture onCapture={handleCapture} isProcessing={isLoading} />
+            {/* Input mode toggle */}
+            <div className="flex justify-center mb-6">
+              <div className="inline-flex rounded-2xl bg-gray-100 p-1">
+                <button
+                  onClick={() => setInputMode('camera')}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${inputMode === 'camera'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  Camera
+                </button>
+                <button
+                  onClick={() => setInputMode('upload')}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${inputMode === 'upload'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Upload
+                </button>
+              </div>
+            </div>
+
+            {/* Active input */}
+            {inputMode === 'camera' ? (
+              <CameraCapture onCapture={handleCapture} isProcessing={isLoading} />
+            ) : (
+              <FileUpload onUpload={handleCapture} isProcessing={isLoading} />
+            )}
           </div>
         )}
 

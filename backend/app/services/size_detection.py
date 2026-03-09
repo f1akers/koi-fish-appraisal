@@ -3,17 +3,19 @@ Size Detection Service
 
 Calculates the actual size of koi fish in centimeters using
 instance segmentation and reference coin detection.
+
+Includes multi-sample aggregation for robust size measurement.
 """
 
 import logging
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import List, Tuple, Optional
 
 import cv2
 import numpy as np
 from ultralytics import YOLO
 
-from app.config import MODEL_PATHS, get_coin_diameter_cm
+from app.config import MODEL_PATHS, get_coin_diameter_cm, DEFAULT_N_SAMPLES
 
 logger = logging.getLogger(__name__)
 
@@ -276,3 +278,87 @@ def detect_fish_mask(image: np.ndarray) -> Tuple[Optional[np.ndarray], int]:
     """
     detector = get_size_detector()
     return detector.detect_fish_mask(image)
+
+
+# =============================================================================
+# Multi-Sample Size Aggregation
+# =============================================================================
+
+
+def detect_fish_size_multisample(
+    image: np.ndarray,
+    n_samples: int = DEFAULT_N_SAMPLES,
+) -> Tuple[float, np.ndarray, dict]:
+    """
+    Detect fish size using multiple augmented samples and median aggregation.
+
+    Coin detection runs once (coins don't benefit from augmentation).
+    Segmentation runs on each augmented variant. The final size is the median
+    of all size measurements, and the representative mask is from the run
+    closest to the median.
+
+    Args:
+        image: Input image (BGR numpy array).
+        n_samples: Number of inference samples (1 = single-pass).
+
+    Returns:
+        Tuple of (size_cm, representative_mask, info_dict).
+
+    Raises:
+        ValueError: If fish or coin not detected.
+    """
+    if n_samples <= 1:
+        return detect_fish_size(image)
+
+    from app.services.pattern_detection import augment_image
+
+    detector = get_size_detector()
+
+    # Coin detection runs once on the original image
+    coin_class, coin_bbox, coin_diameter_px = detector.detect_coin(image)
+    if coin_class is None:
+        raise ValueError("Could not detect reference coin in image")
+    ppc = detector.calculate_ppc(coin_class, coin_diameter_px)
+
+    # Run segmentation on each augmented variant
+    sizes: List[float] = []
+    masks: List[np.ndarray] = []
+
+    for i in range(n_samples):
+        aug_img = augment_image(image, seed=i)
+        fish_mask, fish_pixels = detector.detect_fish_mask(aug_img)
+        if fish_mask is None:
+            logger.warning(f"Sample {i}: no fish detected, skipping")
+            continue
+        size_cm = detector.calculate_fish_size(int(fish_pixels), ppc)
+        sizes.append(size_cm)
+        masks.append(fish_mask)
+        logger.debug(f"Sample {i}: size={size_cm:.2f} cm")
+
+    if len(sizes) == 0:
+        raise ValueError("Could not detect koi fish in any sample")
+
+    # Aggregate via median
+    median_size = float(np.median(sizes))
+
+    # Select representative mask (closest to median)
+    diffs = [abs(s - median_size) for s in sizes]
+    best_idx = int(np.argmin(diffs))
+    representative_mask = masks[best_idx]
+
+    info = {
+        "coin_class": coin_class,
+        "coin_diameter_pixels": coin_diameter_px,
+        "ppc": ppc,
+        "n_samples": n_samples,
+        "n_successful": len(sizes),
+        "all_sizes": sizes,
+        "median_size": median_size,
+        "selected_sample": best_idx,
+    }
+
+    logger.info(
+        f"Multi-sample size ({len(sizes)}/{n_samples} runs): "
+        f"median={median_size:.2f} cm, sizes={[round(s, 2) for s in sizes]}"
+    )
+    return median_size, representative_mask, info
