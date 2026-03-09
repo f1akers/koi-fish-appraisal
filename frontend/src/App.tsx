@@ -2,18 +2,18 @@
  * Koi Fish Appraisal Application
  */
 
-import { useState, useCallback } from 'react';
-import { CameraCapture, FileUpload, ResultsPanel } from './components';
-import { appraiseImage } from './services/api';
-import { downloadCSV } from './utils/exportCsv';
-import type { AppraisalResult, AppraisalHistoryItem } from './types';
+import { useState, useCallback } from "react";
+import { CameraCapture, FileUpload, ResultsPanel } from "./components";
+import { appraiseImage } from "./services/api";
+import { downloadCSV } from "./utils/exportCsv";
+import type { AppraisalResult, AppraisalHistoryItem } from "./types";
 
-type AppView = 'camera' | 'results';
-type InputMode = 'camera' | 'upload';
+type AppView = "camera" | "results";
+type InputMode = "camera" | "upload";
 
 function App() {
-  const [view, setView] = useState<AppView>('camera');
-  const [inputMode, setInputMode] = useState<InputMode>('camera');
+  const [view, setView] = useState<AppView>("camera");
+  const [inputMode, setInputMode] = useState<InputMode>("camera");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AppraisalResult | null>(null);
@@ -39,18 +39,18 @@ function App() {
         imagePreview: previewUrl,
         result: appraisalResult,
       };
-      setHistory(prev => [...prev, historyItem]);
+      setHistory((prev) => [...prev, historyItem]);
 
-      setView('results');
+      setView("results");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to process image');
+      setError(err instanceof Error ? err.message : "Failed to process image");
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   const handleNewCapture = useCallback(() => {
-    setView('camera');
+    setView("camera");
     setResult(null);
     setError(null);
     if (imagePreview) {
@@ -77,8 +77,12 @@ function App() {
                 <span className="text-xl">🐟</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Koi Appraisal</h1>
-                <p className="text-xs text-gray-500">AI-Powered Fish Valuation</p>
+                <h1 className="text-xl font-bold text-gray-900">
+                  Koi Appraisal
+                </h1>
+                <p className="text-xs text-gray-500">
+                  AI-Powered Fish Assessment
+                </p>
               </div>
             </div>
 
@@ -87,7 +91,7 @@ function App() {
               <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-violet-50 to-purple-50 rounded-full">
                 <div className="w-2 h-2 rounded-full bg-gradient-to-r from-violet-500 to-purple-600"></div>
                 <span className="text-sm font-medium text-purple-700">
-                  {history.length} appraisal{history.length !== 1 ? 's' : ''}
+                  {history.length} appraisal{history.length !== 1 ? "s" : ""}
                 </span>
               </div>
             )}
@@ -102,12 +106,24 @@ function App() {
           <div className="mb-8 p-5 bg-gradient-to-r from-red-50 to-rose-50 border border-red-100 rounded-2xl">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-red-800">Something went wrong</p>
+                <p className="font-semibold text-red-800">
+                  Something went wrong
+                </p>
                 <p className="text-sm text-red-600 mt-1">{error}</p>
               </div>
             </div>
@@ -115,32 +131,54 @@ function App() {
         )}
 
         {/* Camera / Upload View */}
-        {view === 'camera' && (
+        {view === "camera" && (
           <div className="animate-fade-in">
             {/* Input mode toggle */}
             <div className="flex justify-center mb-6">
               <div className="inline-flex rounded-2xl bg-gray-100 p-1">
                 <button
-                  onClick={() => setInputMode('camera')}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${inputMode === 'camera'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                    }`}
+                  onClick={() => setInputMode("camera")}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    inputMode === "camera"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
                   </svg>
                   Camera
                 </button>
                 <button
-                  onClick={() => setInputMode('upload')}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${inputMode === 'upload'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                    }`}
+                  onClick={() => setInputMode("upload")}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    inputMode === "upload"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
                   </svg>
                   Upload
                 </button>
@@ -148,8 +186,11 @@ function App() {
             </div>
 
             {/* Active input */}
-            {inputMode === 'camera' ? (
-              <CameraCapture onCapture={handleCapture} isProcessing={isLoading} />
+            {inputMode === "camera" ? (
+              <CameraCapture
+                onCapture={handleCapture}
+                isProcessing={isLoading}
+              />
             ) : (
               <FileUpload onUpload={handleCapture} isProcessing={isLoading} />
             )}
@@ -157,7 +198,7 @@ function App() {
         )}
 
         {/* Results View */}
-        {view === 'results' && result && (
+        {view === "results" && result && (
           <div className="animate-fade-in">
             <ResultsPanel
               result={result}
@@ -175,7 +216,7 @@ function App() {
           <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
             <span>Powered by</span>
             <span className="font-semibold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
-              YOLOv8 + Linear Regression
+              YOLOv8 + K-Means
             </span>
           </div>
         </div>

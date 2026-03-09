@@ -18,6 +18,7 @@ This feature extracts numerical metrics from koi fish images that will be used a
 **Purpose:** Calculate the actual size of the koi fish in centimeters.
 
 **Implementation Steps:**
+
 1. Load the koi segmentation model (`backend/models/koi-segment.pt`)
 2. Run inference to get instance segmentation mask
 3. Count pixels within the segmentation mask
@@ -31,6 +32,7 @@ This feature extracts numerical metrics from koi fish images that will be used a
 **Output:** `float` - Size in centimeters
 
 **Files to Create/Modify:**
+
 - `backend/app/services/size_detection.py`
 
 ---
@@ -47,6 +49,7 @@ This feature extracts numerical metrics from koi fish images that will be used a
 | Kohaku | `kohaku` | White with red markings |
 
 **Implementation Steps:**
+
 1. Load pattern classification model (`backend/models/koi-pattern.pt`)
 2. Run inference on the fish region
 3. Return predicted class and confidence score
@@ -55,37 +58,39 @@ This feature extracts numerical metrics from koi fish images that will be used a
 **Output:** `tuple(str, float)` - (pattern_name, confidence)
 
 **Files to Create/Modify:**
+
 - `backend/app/services/pattern_detection.py`
 
 ---
 
-### 1.3 Color Analysis
+### 1.3 Color Analysis (Refactored — spec 003)
 
-**Purpose:** Quantify the color distribution and quality of the koi fish.
+**Purpose:** Quantify the color distribution of the koi fish using palette-based clustering.
 
 **Implementation Steps:**
-1. Extract the fish region using segmentation mask
-2. Convert to appropriate color space (HSV recommended)
-3. Define color ranges for:
-   - White
-   - Red/Orange (Hi)
-   - Black (Sumi)
-4. Calculate percentage of each color
-5. Apply quality scoring based on:
-   - Color intensity/vibrancy
-   - Edge sharpness between colors (Kiwa)
-   - Color depth consistency
 
-**Scoring Criteria (to be refined with research):**
-- Color saturation levels
-- Color boundary clarity
-- Even distribution within color patches
+1. Extract masked fish pixels via segmentation mask (`mask > 0`)
+2. Convert BGR → CIELAB colorspace (`cv2.cvtColor(image, cv2.COLOR_BGR2Lab)`)
+3. Reshape to `(N, 3)` float64 array
+4. Cluster with `sklearn.cluster.KMeans(n_clusters=4, random_state=42, n_init=1)`
+5. Map cluster centroids to named koi colors using `KOI_COLOR_MAP` (static LAB centroids in config.py)
+6. Assign colors via Euclidean distance to nearest centroid (threshold `COLOR_DISTANCE_THRESHOLD=50.0` for "Other" fallback)
+7. Merge duplicate color mappings and return proportions
+
+**Named Colors:** White, Red, Black, Orange, Yellow, Other
+
+**Edge Cases:**
+
+- Fewer than 10 pixels → warning log + single-cluster fallback
+- Unmapped centroids beyond threshold → "Other"
 
 **Input:** Image (numpy array), segmentation mask  
-**Output:** `dict` - Color metrics dictionary
+**Output:** `Dict[str, float]` — Named color proportions summing to ~100%
 
-**Files to Create/Modify:**
+**Files:**
+
 - `backend/app/services/color_analysis.py`
+- `backend/app/config.py` (KOI_COLOR_MAP, DEFAULT_K_CLUSTERS, COLOR_DISTANCE_THRESHOLD)
 
 ---
 
@@ -94,6 +99,7 @@ This feature extracts numerical metrics from koi fish images that will be used a
 **Purpose:** Measure the bilateral symmetry of the koi fish pattern.
 
 **Implementation Steps:**
+
 1. Extract fish region using segmentation mask
 2. Apply PCA to find the principal axis (accounts for bent fish)
 3. Rotate/align fish along principal axis
@@ -102,6 +108,7 @@ This feature extracts numerical metrics from koi fish images that will be used a
 6. Return symmetry score (0-1, where 1 is perfect symmetry)
 
 **Algorithm:**
+
 ```
 1. Get segmentation mask
 2. Find centroid and orientation using PCA
@@ -115,26 +122,28 @@ This feature extracts numerical metrics from koi fish images that will be used a
 **Output:** `float` - Symmetry score (0-1)
 
 **Files to Create/Modify:**
+
 - `backend/app/services/symmetry_analysis.py`
 
 ---
 
-### 1.5 Price Prediction
+### 1.5 Multi-Sample Aggregation (Added — spec 003)
 
-**Purpose:** Predict the price based on collected metrics.
+**Purpose:** Run pattern and size detection multiple times per image with input-level augmentation for more reliable results.
 
-**Implementation Steps:**
-1. Collect all metrics: size, pattern, color scores, symmetry
-2. Prepare feature vector
-3. Load trained linear regression model (`backend/models/linear.pkl`)
-4. Run prediction
-5. Return predicted price
+**Implementation:**
 
-**Input:** `dict` - All collected metrics  
-**Output:** `float` - Predicted price
+- **Augmentation:** Mild brightness/contrast jitter (±10%), small rotation (±5°), 50% horizontal flip; seed=0 returns original unaugmented image
+- **Pattern aggregation:** Majority vote across N samples, mean confidence of winning votes
+- **Size aggregation:** `np.median()` of N size measurements; representative mask selected from run closest to median
+- **Default:** `n_samples=3` (configurable via `DEFAULT_N_SAMPLES` in config.py)
+- **Backward-compatible:** `n_samples=1` produces identical behavior to single-pass
 
-**Files to Create/Modify:**
-- `backend/app/services/price_prediction.py`
+**Files:**
+
+- `backend/app/services/pattern_detection.py` (augment_image + multi-sample wrapper)
+- `backend/app/services/size_detection.py` (multi-sample wrapper)
+- `backend/app/routers/appraisal.py` (pipeline orchestration)
 
 ---
 
@@ -142,13 +151,25 @@ This feature extracts numerical metrics from koi fish images that will be used a
 
 ```python
 @router.post("/appraise")
-async def appraise_koi(image: UploadFile) -> AppraisalResult:
+async def appraise_koi(image: UploadFile) -> AppraisalResponse:
     """
     Process uploaded koi fish image and return appraisal.
-    
+
     Returns:
-        AppraisalResult containing all metrics and predicted price
+        AppraisalResponse containing size, pattern, color_proportions, symmetry
     """
+```
+
+**Response format:**
+
+```json
+{
+  "size_cm": 25.4,
+  "pattern_name": "kohaku",
+  "pattern_confidence": 0.92,
+  "color_proportions": { "Red": 42.3, "White": 35.1, "Black": 22.6 },
+  "symmetry_score": 0.87
+}
 ```
 
 ---
@@ -167,6 +188,7 @@ async def appraise_koi(image: UploadFile) -> AppraisalResult:
 ## Completion Checklist
 
 When this feature is complete:
+
 - [x] All sub-features implemented and tested
 - [x] API endpoint created and documented
 - [ ] Unit tests written with >80% coverage
@@ -180,23 +202,21 @@ When this feature is complete:
 
 ### Files Created
 
-| File | Purpose |
-|------|---------|
-| `backend/app/services/size_detection.py` | Fish size detection using segmentation + coin reference |
-| `backend/app/services/pattern_detection.py` | Pattern classification (Ogon, Showa, Kohaku) |
-| `backend/app/services/color_analysis.py` | Color distribution and quality analysis |
-| `backend/app/services/color_calibration_ui.py` | Optional calibration UI for color thresholds |
-| `backend/app/services/symmetry_analysis.py` | Bilateral symmetry measurement using PCA |
-| `backend/app/services/price_prediction.py` | Price prediction using trained model |
-| `backend/app/train.py` | Linear regression model training script |
+| File                                        | Purpose                                                 |
+| ------------------------------------------- | ------------------------------------------------------- |
+| `backend/app/services/size_detection.py`    | Fish size detection using segmentation + coin reference |
+| `backend/app/services/pattern_detection.py` | Pattern classification (Ogon, Showa, Kohaku)            |
+| `backend/app/services/color_analysis.py`    | K-Means clustering color distribution in CIELAB         |
+| `backend/app/services/symmetry_analysis.py` | Bilateral symmetry measurement using PCA                |
 
-### Color Calibration
+### Removed Files (spec 003)
 
-A calibration UI is available for adjusting color detection thresholds if needed:
-
-```bash
-python -m app.services.color_calibration_ui [optional_image_path]
-```
+| File                                           | Reason                                      |
+| ---------------------------------------------- | ------------------------------------------- |
+| `backend/app/services/price_prediction.py`     | Price prediction removed                    |
+| `backend/app/services/color_calibration_ui.py` | HSV calibration UI replaced by LAB approach |
+| `backend/app/train.py`                         | Training script for price model removed     |
+| `backend/models/linear*.pkl/json`              | Price model artifacts removed               |
 
 Calibration settings are saved to `backend/models/color_calibration.json`.
 

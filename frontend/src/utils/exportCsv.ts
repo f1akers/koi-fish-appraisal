@@ -1,64 +1,71 @@
 /**
  * CSV Export Utility
- * 
+ *
  * Functions for exporting appraisal results to CSV.
  */
 
-import type { AppraisalHistoryItem } from '../types';
+import type { AppraisalHistoryItem } from "../types";
 
 /**
  * Convert appraisal history to CSV string
  */
 export function toCSV(items: AppraisalHistoryItem[]): string {
-    const headers = [
-        'timestamp',
-        'size_cm',
-        'pattern',
-        'pattern_confidence',
-        'color_white_pct',
-        'color_red_pct',
-        'color_black_pct',
-        'color_quality',
-        'symmetry',
-        'predicted_price',
-    ];
+  // Collect all unique color keys across all items
+  const colorKeys = new Set<string>();
+  for (const item of items) {
+    for (const key of Object.keys(item.result.color_proportions)) {
+      colorKeys.add(key);
+    }
+  }
+  const sortedColorKeys = Array.from(colorKeys).sort();
 
-    const rows = items.map(item => [
-        item.timestamp.toISOString(),
-        item.result.size_cm.toFixed(2),
-        item.result.pattern_name,
-        item.result.pattern_confidence.toFixed(3),
-        item.result.color_white_pct.toFixed(1),
-        item.result.color_red_pct.toFixed(1),
-        item.result.color_black_pct.toFixed(1),
-        item.result.color_quality_score.toFixed(3),
-        item.result.symmetry_score.toFixed(3),
-        item.result.predicted_price.toFixed(2),
-    ]);
+  const headers = [
+    "timestamp",
+    "size_cm",
+    "pattern",
+    "pattern_confidence",
+    ...sortedColorKeys.map((k) => `color_${k.toLowerCase()}_pct`),
+    "symmetry",
+  ];
 
-    const csvContent = [
-        headers.join(','),
-        ...rows.map(row => row.join(',')),
-    ].join('\n');
+  const rows = items.map((item) => [
+    item.timestamp.toISOString(),
+    item.result.size_cm.toFixed(2),
+    item.result.pattern_name,
+    item.result.pattern_confidence.toFixed(3),
+    ...sortedColorKeys.map((k) =>
+      (item.result.color_proportions[k] ?? 0).toFixed(1),
+    ),
+    item.result.symmetry_score.toFixed(3),
+  ]);
 
-    return csvContent;
+  const csvContent = [
+    headers.join(","),
+    ...rows.map((row) => row.join(",")),
+  ].join("\n");
+
+  return csvContent;
 }
 
 /**
  * Download CSV file
  */
-export function downloadCSV(items: AppraisalHistoryItem[], filename?: string): void {
-    const csv = toCSV(items);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+export function downloadCSV(
+  items: AppraisalHistoryItem[],
+  filename?: string,
+): void {
+  const csv = toCSV(items);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
 
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename || `koi-appraisal-${new Date().toISOString().split('T')[0]}.csv`;
+  const link = document.createElement("a");
+  link.href = url;
+  link.download =
+    filename || `koi-appraisal-${new Date().toISOString().split("T")[0]}.csv`;
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-    URL.revokeObjectURL(url);
+  URL.revokeObjectURL(url);
 }

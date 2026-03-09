@@ -4,24 +4,26 @@
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| **Backend** | Python, FastAPI, OpenCV, Ultralytics |
-| **Frontend** | Vite, React (TypeScript), Tailwind CSS |
-| **ML Models** | YOLOv8 (Segmentation/Detection), Scikit-learn (Linear Regression) |
+| Layer         | Technology                                                         |
+| ------------- | ------------------------------------------------------------------ |
+| **Backend**   | Python, FastAPI, OpenCV, Ultralytics                               |
+| **Frontend**  | Vite, React (TypeScript), Tailwind CSS                             |
+| **ML Models** | YOLOv8 (Segmentation/Detection), Scikit-learn (K-Means Clustering) |
 
 ---
 
 ## Features Overview
 
-| Feature | Status | Documentation |
-|---------|--------|---------------|
-| Feature 1: Fish Metrics | 🟢 Completed | [fish-metrics.md](./features/fish-metrics.md) |
-| Feature 2: Linear Regression Trainer | 🟢 Completed | [linear-regression-trainer.md](./features/linear-regression-trainer.md) |
-| Feature 3: Frontend Camera Capture | 🟢 Completed | [frontend-capture.md](./features/frontend-capture.md) |
-| Feature 4: Results Display & Export | 🟢 Completed | [results-display.md](./features/results-display.md) |
+| Feature                                  | Status       | Documentation                                                               |
+| ---------------------------------------- | ------------ | --------------------------------------------------------------------------- |
+| Feature 1: Fish Metrics                  | 🟢 Completed | [fish-metrics.md](./features/fish-metrics.md)                               |
+| Feature 2: ~~Linear Regression Trainer~~ | 🔴 Removed   | ~~[linear-regression-trainer.md](./features/linear-regression-trainer.md)~~ |
+| Feature 3: Frontend Camera Capture       | 🟢 Completed | [frontend-capture.md](./features/frontend-capture.md)                       |
+| Feature 4: Results Display & Export      | 🟢 Completed | [results-display.md](./features/results-display.md)                         |
+| Refactor: Color & Sampling               | 🟢 Completed | [spec](../specs/003-color-sampling-refactor/spec.md)                        |
 
 ### Status Legend
+
 - 🔴 Not Started
 - 🟡 In Progress
 - 🟢 Completed
@@ -33,30 +35,23 @@
 **Description:** Calculate numerical metrics from koi fish images for price prediction.
 
 ### Sub-features:
-1. **Size Detection** - Detect fish segmentation, use reference coin for scale
-2. **Pattern Recognition** - Classify patterns (Ogon, Showa, Kohaku)
-3. **Color Analysis** - Quantify color distribution using levels-based approach
+
+1. **Size Detection** - Detect fish segmentation, use reference coin for scale (multi-sample median aggregation)
+2. **Pattern Recognition** - Classify patterns (Ogon, Sanke, Kohaku) with multi-sample majority vote
+3. **Color Analysis** - K-Means clustering in CIELAB colorspace with named koi color mapping
 4. **Symmetry Analysis** - PCA + Chi-squared comparison of left/right sides
-5. **Price Prediction** - Process metrics through trained linear regression model
 
 ### Required Models:
+
 - `backend/models/koi-segment.pt` - Instance segmentation model
 - `backend/models/coin.pt` - Coin detection model
 - `backend/models/koi-pattern.pt` - Pattern classification model
-- `backend/models/linear.pkl` - Trained linear regression model
 
 ---
 
-## Feature 2: Linear Regression Trainer
+## Feature 2: Linear Regression Trainer (REMOVED)
 
-**Description:** Training script for the price prediction model.
-
-### Input:
-- CSV file with columns: `image_filename`, `price`
-- Images stored at `backend/images/`
-
-### Output:
-- Trained model saved to `backend/models/linear.pkl`
+**Status:** Removed as part of color & sampling refactor (spec 003). Price prediction functionality has been removed.
 
 ---
 
@@ -65,6 +60,7 @@
 **Description:** Camera interface for capturing koi fish images.
 
 ### Requirements:
+
 - Access user's camera
 - Display live preview
 - Capture button functionality
@@ -77,10 +73,10 @@
 **Description:** Display appraisal results and allow data export.
 
 ### Requirements:
-- Show individual metrics (size, pattern, color, symmetry)
-- Display price prediction
-- Linear regression visualization graph
-- Export results to CSV
+
+- Show individual metrics (size, pattern, color distribution, symmetry)
+- Dynamic named color bars (Red, White, Black, Orange, Yellow)
+- Export results to CSV with dynamic color columns
 
 ---
 
@@ -111,6 +107,7 @@
 ### Documentation Updates
 
 When completing a feature:
+
 1. Update the feature status in this index (🔴 → 🟡 → 🟢)
 2. Update the corresponding feature documentation in `docs/features/`
 3. Add any API documentation to `docs/api/` if applicable
@@ -120,11 +117,10 @@ When completing a feature:
 
 ## API Endpoints (Planned)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/appraise` | Upload image and get appraisal |
-| POST | `/api/train` | Trigger model training |
-| GET | `/api/health` | Health check endpoint |
+| Method | Endpoint        | Description                    |
+| ------ | --------------- | ------------------------------ |
+| POST   | `/api/appraise` | Upload image and get appraisal |
+| GET    | `/api/health`   | Health check endpoint          |
 
 ---
 
