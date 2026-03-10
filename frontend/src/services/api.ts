@@ -6,8 +6,8 @@
 
 import type { AppraisalResult } from "../types";
 
-// Use environment variable for API base URL, fallback to proxy path for development
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+// API base URL – set VITE_API_BASE_URL to backend's public URL (e.g. https://koi-backend-production.up.railway.app)
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
 /**
  * Send an image for appraisal
