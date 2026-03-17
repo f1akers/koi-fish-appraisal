@@ -43,7 +43,11 @@ class AppraisalResponse(BaseModel):
     )
 
     # Symmetry metrics
-    symmetry_score: float = Field(..., ge=0, le=1, description="Bilateral symmetry score")
+    symmetry_score: float = Field(..., ge=0, le=1, description="Bilateral symmetry score (5-section longitudinal)")
+
+    # Derived quality scores
+    color_score: float = Field(..., ge=0, le=1, description="Color quality score vs ideal distribution for pattern")
+    overall_score: float = Field(..., ge=0, le=1, description="Overall quality score (mean of color and symmetry scores)")
 
     class Config:
         json_schema_extra = {
@@ -57,5 +61,7 @@ class AppraisalResponse(BaseModel):
                     "Black": 22.6,
                 },
                 "symmetry_score": 0.87,
+                "color_score": 0.74,
+                "overall_score": 0.81,
             }
         }

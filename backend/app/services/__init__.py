@@ -5,7 +5,8 @@ Contains all business logic services for koi fish appraisal:
 - Size Detection: Calculates fish size using segmentation and reference coin
 - Pattern Detection: Classifies koi patterns (Ogon, Sanke, Kohaku)
 - Color Analysis: Quantifies color distribution and quality
-- Symmetry Analysis: Measures bilateral symmetry
+- Color Scoring: Derives quality score from color proportions vs ideal
+- Symmetry Analysis: Measures bilateral symmetry (5-section longitudinal)
 """
 
 from app.services.size_detection import (
@@ -20,6 +21,9 @@ from app.services.pattern_detection import (
 )
 from app.services.color_analysis import (
     analyze_fish_colors,
+)
+from app.services.color_scoring import (
+    score_fish_colors,
 )
 from app.services.symmetry_analysis import (
     SymmetryAnalyzer,
@@ -38,6 +42,8 @@ __all__ = [
     "classify_koi_pattern",
     # Color Analysis
     "analyze_fish_colors",
+    # Color Scoring
+    "score_fish_colors",
     # Symmetry Analysis
     "SymmetryAnalyzer",
     "get_symmetry_analyzer",

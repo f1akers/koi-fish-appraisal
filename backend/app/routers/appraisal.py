@@ -15,6 +15,7 @@ from app.schemas.appraisal import AppraisalResponse
 from app.services.size_detection import detect_fish_size_multisample
 from app.services.pattern_detection import classify_koi_pattern_multisample
 from app.services.color_analysis import analyze_fish_colors
+from app.services.color_scoring import score_fish_colors
 from app.services.symmetry_analysis import analyze_fish_symmetry
 
 logger = logging.getLogger(__name__)
@@ -112,12 +113,20 @@ async def appraise_koi(image: UploadFile = File(...)) -> AppraisalResponse:
             logger.warning(f"Symmetry analysis failed: {e}")
             symmetry_score = 0.5
 
+        # 5. Color quality score vs pattern-specific ideal distribution
+        color_score = score_fish_colors(pattern_name, color_proportions)
+
+        # 6. Overall score derived from color and symmetry only
+        overall_score = (color_score + symmetry_score) / 2.0
+
         return AppraisalResponse(
             size_cm=size_cm,
             pattern_name=pattern_name,
             pattern_confidence=pattern_confidence,
             color_proportions=color_proportions,
             symmetry_score=symmetry_score,
+            color_score=color_score,
+            overall_score=overall_score,
         )
 
     except HTTPException:

@@ -81,7 +81,7 @@ function App() {
                   Koi Appraisal
                 </h1>
                 <p className="text-xs text-gray-500">
-                  AI-Powered Fish Assessment
+                  AI-Powered Fish Quality Assessment
                 </p>
               </div>
             </div>
