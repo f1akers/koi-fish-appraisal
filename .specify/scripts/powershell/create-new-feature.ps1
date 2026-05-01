@@ -141,6 +141,9 @@ if (-not $fallbackRoot) {
     exit 1
 }
 
+# Load common functions (includes Resolve-Template)
+. "$PSScriptRoot/common.ps1"
+
 try {
     $repoRoot = git rev-parse --show-toplevel 2>$null
     if ($LASTEXITCODE -eq 0) {
@@ -250,7 +253,7 @@ if ($branchName.Length -gt $maxBranchLength) {
 if ($hasGit) {
     $branchCreated = $false
     try {
-        git checkout -b $branchName 2>$null | Out-Null
+        git checkout -q -b $branchName 2>$null | Out-Null
         if ($LASTEXITCODE -eq 0) {
             $branchCreated = $true
         }
@@ -276,9 +279,9 @@ if ($hasGit) {
 $featureDir = Join-Path $specsDir $branchName
 New-Item -ItemType Directory -Path $featureDir -Force | Out-Null
 
-$template = Join-Path $repoRoot '.specify/templates/spec-template.md'
+$template = Resolve-Template -TemplateName 'spec-template' -RepoRoot $repoRoot
 $specFile = Join-Path $featureDir 'spec.md'
-if (Test-Path $template) { 
+if ($template -and (Test-Path $template)) { 
     Copy-Item $template $specFile -Force 
 } else { 
     New-Item -ItemType File -Path $specFile | Out-Null 

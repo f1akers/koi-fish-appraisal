@@ -47,7 +47,7 @@ class AppraisalResponse(BaseModel):
 
     # Derived quality scores
     color_score: float = Field(..., ge=0, le=1, description="Color quality score vs ideal distribution for pattern")
-    overall_score: float = Field(..., ge=0, le=1, description="Overall quality score (mean of color and symmetry scores)")
+    overall_score: float = Field(..., ge=0, le=1, description="Overall quality score (50% symmetry + 30% color + 20% pattern confidence)")
 
     class Config:
         json_schema_extra = {

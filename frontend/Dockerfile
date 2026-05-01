@@ -20,6 +20,7 @@ COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 ENV PORT=80 \
-    NGINX_ENVSUBST_TEMPLATE_VARS=PORT
+    BACKEND_URL=http://localhost:8000/api \
+    NGINX_ENVSUBST_TEMPLATE_VARS="PORT BACKEND_URL"
 
 CMD ["nginx", "-g", "daemon off;"]

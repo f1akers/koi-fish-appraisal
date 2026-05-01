@@ -116,8 +116,12 @@ async def appraise_koi(image: UploadFile = File(...)) -> AppraisalResponse:
         # 5. Color quality score vs pattern-specific ideal distribution
         color_score = score_fish_colors(pattern_name, color_proportions)
 
-        # 6. Overall score derived from color and symmetry only
-        overall_score = (color_score + symmetry_score) / 2.0
+        # 6. Overall score: 50% symmetry, 30% color, 20% pattern
+        overall_score = (
+            0.50 * symmetry_score
+            + 0.30 * color_score
+            + 0.20 * pattern_confidence
+        )
 
         return AppraisalResponse(
             size_cm=size_cm,

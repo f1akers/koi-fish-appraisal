@@ -6,8 +6,9 @@
 
 import type { AppraisalResult } from "../types";
 
-// API base URL – set VITE_API_BASE_URL to backend's public URL (e.g. https://koi-backend-production.up.railway.app)
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+// API base URL – set VITE_API_BASE_URL to backend's public URL for direct access,
+// or use default "/api" for proxy (dev Vite proxy or production NGINX proxy)
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
 
 /**
  * Send an image for appraisal
