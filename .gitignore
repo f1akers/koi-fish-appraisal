@@ -68,6 +68,10 @@ dist/
 # backend/models/*.pt
 # backend/models/*.pkl
 
+# Expert scoring artifacts (trained models, datasets, results)
+backend/models/expert/
+training/
+
 # Training images (typically too large for git)
 backend/images/**/*.jpg
 backend/images/**/*.jpeg

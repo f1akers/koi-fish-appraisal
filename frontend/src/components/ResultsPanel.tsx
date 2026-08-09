@@ -26,6 +26,26 @@ export function ResultsPanel({
 
   return (
     <div className="w-full max-w-4xl mx-auto">
+      {/* Scoring mode badge */}
+      <div className="flex justify-end mb-4">
+        {result.scoring_mode === "learned" ? (
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-sm font-medium">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Expert-calibrated
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-500 text-sm font-medium">
+            Heuristic scores
+          </span>
+        )}
+      </div>
+
       {/* Image and Quick Stats */}
       <div className="grid lg:grid-cols-5 gap-6 mb-8">
         {/* Image Preview */}
@@ -73,9 +93,15 @@ export function ResultsPanel({
           <div className="animate-fade-in animate-delay-200">
             <MetricCard
               title="Pattern"
-              value={patternDisplay}
-              subtitle={`${(result.pattern_confidence * 100).toFixed(0)}% confidence`}
-              variant="gold"
+              value={`${(result.pattern_score * 100).toFixed(0)}%`}
+              subtitle={`${patternDisplay} · ${(result.pattern_confidence * 100).toFixed(0)}% confidence`}
+              variant={
+                result.pattern_score >= 0.8
+                  ? "success"
+                  : result.pattern_score >= 0.6
+                    ? "warning"
+                    : "default"
+              }
               icon={
                 <svg
                   className="w-5 h-5"

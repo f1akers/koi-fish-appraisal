@@ -10,13 +10,14 @@ import cv2
 import numpy as np
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
-from app.config import DEFAULT_N_SAMPLES
+from app.config import DEFAULT_N_SAMPLES, settings
 from app.schemas.appraisal import AppraisalResponse
 from app.services.size_detection import detect_fish_size_multisample
 from app.services.pattern_detection import classify_koi_pattern_multisample
 from app.services.color_analysis import analyze_fish_colors
 from app.services.color_scoring import score_fish_colors
 from app.services.symmetry_analysis import analyze_fish_symmetry
+from app.utils.feature_extraction import build_feature_vector
 
 logger = logging.getLogger(__name__)
 
@@ -116,12 +117,37 @@ async def appraise_koi(image: UploadFile = File(...)) -> AppraisalResponse:
         # 5. Color quality score vs pattern-specific ideal distribution
         color_score = score_fish_colors(pattern_name, color_proportions)
 
-        # 6. Overall score: 50% symmetry, 30% color, 20% pattern
-        overall_score = (
-            0.50 * symmetry_score
-            + 0.30 * color_score
-            + 0.20 * pattern_confidence
-        )
+        # 6. Score source: expert-calibrated XGBoost (when trained) or heuristics
+        scoring_mode = "heuristic"
+        pattern_score = 0.0
+        if settings.SCORING_MODE == "learned":
+            try:
+                from app.services.expert_scoring import get_expert_scoring
+
+                features = build_feature_vector(
+                    pattern_name=pattern_name,
+                    pattern_confidence=pattern_confidence,
+                    symmetry_score=symmetry_score,
+                    color_proportions=color_proportions,
+                )
+                expert_scores = get_expert_scoring().predict(pattern_name, features)
+                pattern_score = expert_scores["pattern"]
+                symmetry_score = expert_scores["symmetry"]
+                color_score = expert_scores["color"]
+                scoring_mode = "learned"
+            except Exception as e:
+                logger.warning(f"Expert scoring unavailable, falling back to heuristics: {e}")
+
+        if scoring_mode == "heuristic":
+            pattern_score = pattern_confidence
+            # Overall: 50% symmetry, 30% color, 20% pattern
+            overall_score = (
+                0.50 * symmetry_score
+                + 0.30 * color_score
+                + 0.20 * pattern_confidence
+            )
+        else:
+            overall_score = expert_scores["overall"]
 
         return AppraisalResponse(
             size_cm=size_cm,
@@ -129,8 +155,10 @@ async def appraise_koi(image: UploadFile = File(...)) -> AppraisalResponse:
             pattern_confidence=pattern_confidence,
             color_proportions=color_proportions,
             symmetry_score=symmetry_score,
+            pattern_score=pattern_score,
             color_score=color_score,
             overall_score=overall_score,
+            scoring_mode=scoring_mode,
         )
 
     except HTTPException:
@@ -151,7 +179,7 @@ async def get_model_status() -> dict:
     Returns:
         Dictionary with model availability status.
     """
-    from app.config import MODEL_PATHS
+    from app.config import MODEL_PATHS, EXPERT_MODEL_DIR, EXPERT_TARGETS, KOI_PATTERNS
 
     status = {}
     for name, path in MODEL_PATHS.items():
@@ -159,6 +187,17 @@ async def get_model_status() -> dict:
             "available": path.exists(),
             "path": str(path),
         }
+
+    status["expert_scoring"] = {
+        "available": settings.SCORING_MODE == "learned"
+        and all(
+            (EXPERT_MODEL_DIR / f"{pattern_type}_{target}.json").exists()
+            for pattern_type in KOI_PATTERNS
+            for target in EXPERT_TARGETS
+        ),
+        "path": str(EXPERT_MODEL_DIR),
+        "scoring_mode": settings.SCORING_MODE,
+    }
 
     return {"models": status}
 

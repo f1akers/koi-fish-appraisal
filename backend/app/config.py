@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     MODEL_PATH: Path = Path("./models")
     IMAGES_PATH: Path = Path("./images")
+    SCORING_MODE: str = "heuristic"
     ALLOWED_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000"
     
     model_config = SettingsConfigDict(
@@ -221,6 +222,29 @@ MODEL_PATHS = {
     "coin_detect": settings.MODEL_PATH / "coin.pt",
     "koi_pattern": settings.MODEL_PATH / "koi-pattern.pt",
 }
+
+EXPERT_MODEL_DIR: Path = settings.MODEL_PATH / "expert"
+"""Directory containing trained expert-scoring XGBoost models (per type per target)."""
+
+
+# =============================================================================
+# Expert Scoring Configuration
+# =============================================================================
+
+EXPERT_SCORE_MIN: float = 1.0
+"""Minimum expert rating on the 1-5 scale."""
+
+EXPERT_SCORE_MAX: float = 5.0
+"""Maximum expert rating on the 1-5 scale."""
+
+EXPERT_TARGETS: list[str] = ["color", "pattern", "symmetry", "overall"]
+"""Score targets predicted by the expert-scoring XGBoost models."""
+
+EXPERT_SCORE_CSV_COLUMNS: list[str] = ["filename", "color", "pattern", "symmetry", "overall"]
+"""Required columns in each per-type expert ratings CSV."""
+
+EXPERT_TRAINING_DIR: Path = Path("./training")
+"""Root directory containing training images, one subfolder per pattern type."""
 
 
 # =============================================================================

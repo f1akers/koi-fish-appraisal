@@ -46,8 +46,15 @@ class AppraisalResponse(BaseModel):
     symmetry_score: float = Field(..., ge=0, le=1, description="Bilateral symmetry score (5-section longitudinal)")
 
     # Derived quality scores
+    pattern_score: float = Field(..., ge=0, le=1, description="Pattern quality score (expert-calibrated when scoring_mode=learned)")
     color_score: float = Field(..., ge=0, le=1, description="Color quality score vs ideal distribution for pattern")
     overall_score: float = Field(..., ge=0, le=1, description="Overall quality score (50% symmetry + 30% color + 20% pattern confidence)")
+
+    # Scoring source
+    scoring_mode: str = Field(
+        ...,
+        description="Where the quality scores come from: 'heuristic' (formulas) or 'learned' (expert-calibrated XGBoost)",
+    )
 
     class Config:
         json_schema_extra = {
@@ -61,7 +68,9 @@ class AppraisalResponse(BaseModel):
                     "Black": 22.6,
                 },
                 "symmetry_score": 0.87,
+                "pattern_score": 0.82,
                 "color_score": 0.74,
                 "overall_score": 0.81,
+                "scoring_mode": "learned",
             }
         }

@@ -19,8 +19,10 @@ export interface AppraisalResult {
   pattern_confidence: number;
   color_proportions: Record<string, number>;
   symmetry_score: number;
+  pattern_score: number;
   color_score: number;
   overall_score: number;
+  scoring_mode: "heuristic" | "learned";
 }
 
 /**

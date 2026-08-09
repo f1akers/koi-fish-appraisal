@@ -20,6 +20,7 @@
 | Feature 2: ~~Linear Regression Trainer~~ | 🔴 Removed   | ~~[linear-regression-trainer.md](./features/linear-regression-trainer.md)~~ |
 | Feature 3: Frontend Camera Capture       | 🟢 Completed | [frontend-capture.md](./features/frontend-capture.md)                       |
 | Feature 4: Results Display & Export      | 🟢 Completed | [results-display.md](./features/results-display.md)                         |
+| Feature 5: Expert Scoring (XGBoost)      | 🟡 In Progress | [formulas.md](../formulas.md#learned-scoring-xgboost-expert-calibrated)   |
 | Refactor: Color & Sampling               | 🟢 Completed | [spec](../specs/003-color-sampling-refactor/spec.md)                        |
 
 ### Status Legend

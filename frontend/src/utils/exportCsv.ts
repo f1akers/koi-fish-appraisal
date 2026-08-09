@@ -24,8 +24,12 @@ export function toCSV(items: AppraisalHistoryItem[]): string {
     "size_cm",
     "pattern",
     "pattern_confidence",
+    "pattern_score",
     ...sortedColorKeys.map((k) => `color_${k.toLowerCase()}_pct`),
     "symmetry",
+    "color_score",
+    "overall_score",
+    "scoring_mode",
   ];
 
   const rows = items.map((item) => [
@@ -33,10 +37,14 @@ export function toCSV(items: AppraisalHistoryItem[]): string {
     item.result.size_cm.toFixed(2),
     item.result.pattern_name,
     item.result.pattern_confidence.toFixed(3),
+    item.result.pattern_score.toFixed(3),
     ...sortedColorKeys.map((k) =>
       (item.result.color_proportions[k] ?? 0).toFixed(1),
     ),
     item.result.symmetry_score.toFixed(3),
+    item.result.color_score.toFixed(3),
+    item.result.overall_score.toFixed(3),
+    item.result.scoring_mode,
   ]);
 
   const csvContent = [
