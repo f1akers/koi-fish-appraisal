@@ -70,7 +70,10 @@ dist/
 
 # Expert scoring artifacts (trained models, datasets, results)
 backend/models/expert/
-training/
+training/*
+!training/*/
+training/*/*
+!training/*/*.gitkeep
 
 # Training images (typically too large for git)
 backend/images/**/*.jpg

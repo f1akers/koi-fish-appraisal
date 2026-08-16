@@ -25,6 +25,7 @@ Usage:
 import argparse
 import json
 import logging
+import re
 from pathlib import Path
 
 import numpy as np
@@ -58,10 +59,35 @@ XGB_PARAMS: dict = {
     "tree_method": "hist",
 }
 
+RATING_FRACTION_RE = re.compile(r"^(\d+(?:\.\d)?)\s*/\s*5$")
+
 
 # =============================================================================
 # CSV parsing
 # =============================================================================
+
+
+def _coerce_rating(value: object) -> float | None:
+    """
+    Coerce a raw rating cell to float, or None if not numeric.
+
+    Accepts plain numbers and 'x/5' fraction notation (e.g. '4/5' -> 4.0),
+    which some raters use to mean 'x out of 5'.
+
+    Args:
+        value: Raw cell value from the CSV.
+
+    Returns:
+        Rating as float, or None if it cannot be parsed.
+    """
+    if isinstance(value, str):
+        match = RATING_FRACTION_RE.match(value.strip())
+        if match:
+            return float(match.group(1))
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def parse_expert_csv(csv_path: Path, pattern_type: str) -> pd.DataFrame:
@@ -72,34 +98,79 @@ def parse_expert_csv(csv_path: Path, pattern_type: str) -> pd.DataFrame:
     Ratings are 1-5 with at most one decimal place. Rows are individual
     expert ratings; filenames may repeat.
 
+    Rows with unparseable, out-of-range, or over-precise ratings are
+    dropped individually (with a warning) so a few stray cells do not
+    block the whole dataset. 'x/5' fraction notation is coerced to x.
+
     Args:
         csv_path: Path to the CSV file.
         pattern_type: One of the KOI_PATTERNS types.
 
     Returns:
         DataFrame with validated ratings and a 'type' column.
-
-    Raises:
-        ValueError: If columns are missing or ratings are out of range.
     """
     df = pd.read_csv(csv_path)
+
+    # Normalize headers: strip whitespace/case, unify 'file name' variants
+    df.columns = [str(c).strip().lower().replace(" ", "_") for c in df.columns]
+    df = df.rename(columns={"file_name": "filename"})
 
     missing = [c for c in EXPERT_SCORE_CSV_COLUMNS if c not in df.columns]
     if missing:
         raise ValueError(f"{csv_path}: missing columns {missing}")
 
-    for col in EXPERT_TARGETS:
-        values = df[col].to_numpy(dtype=float)
-        if np.any(values < EXPERT_SCORE_MIN) or np.any(values > EXPERT_SCORE_MAX):
-            raise ValueError(
-                f"{csv_path}: {col} ratings outside {EXPERT_SCORE_MIN}-{EXPERT_SCORE_MAX}"
-            )
-        decimals = np.abs((values * 10) - np.round(values * 10))
-        if np.any(decimals > 1e-6):
-            raise ValueError(f"{csv_path}: {col} ratings must have at most 1 decimal place")
+    dropped: list[dict[str, object]] = []
+    cleaned_rows: list[pd.Series] = []
+    for _, row in df.iterrows():
+        filename = str(row["filename"]).strip() if pd.notna(row["filename"]) else ""
+        if not filename:
+            dropped.append({"filename": "<blank>", "reason": "blank filename"})
+            continue
 
+        values = {col: _coerce_rating(row[col]) for col in EXPERT_TARGETS}
+        if any(v is None for v in values.values()):
+            dropped.append(
+                {
+                    "filename": filename,
+                    "reason": "non-numeric",
+                    "values": values,
+                }
+            )
+            continue
+        if any(v < EXPERT_SCORE_MIN or v > EXPERT_SCORE_MAX for v in values.values()):
+            dropped.append(
+                {
+                    "filename": filename,
+                    "reason": f"outside {EXPERT_SCORE_MIN}-{EXPERT_SCORE_MAX}",
+                    "values": values,
+                }
+            )
+            continue
+        decimals = [abs(v * 10 - round(v * 10)) for v in values.values()]
+        if any(d > 1e-6 for d in decimals):
+            dropped.append(
+                {
+                    "filename": filename,
+                    "reason": "more than 1 decimal place",
+                    "values": values,
+                }
+            )
+            continue
+
+        for col in EXPERT_TARGETS:
+            row[col] = values[col]
+        cleaned_rows.append(row)
+
+    for d in dropped:
+        logger.warning(f"Dropped rating row {d['filename']}: {d['reason']} {d.get('values', '')}")
+
+    df = pd.DataFrame(cleaned_rows, columns=df.columns)
     df["type"] = pattern_type
     df["filename"] = df["filename"].astype(str).str.strip()
+    if dropped:
+        logger.warning(
+            f"{csv_path}: dropped {len(dropped)} of {len(df) + len(dropped)} rating rows"
+        )
     logger.info(
         f"Parsed {csv_path}: {len(df)} ratings, {df['filename'].nunique()} unique images"
     )
@@ -480,14 +551,14 @@ def main() -> None:
     parser.add_argument(
         "--dataset-dir",
         type=Path,
-        default=Path("./training/datasets"),
-        help="Where intermediate dataset CSVs are saved (default: ./training/datasets)",
+        default=None,
+        help="Where intermediate dataset CSVs are saved (default: <images-root>/datasets)",
     )
     parser.add_argument(
         "--results-dir",
         type=Path,
-        default=Path("./training/results"),
-        help="Where metrics and confusion matrices are saved (default: ./training/results)",
+        default=None,
+        help="Where metrics and confusion matrices are saved (default: <images-root>/results)",
     )
     parser.add_argument(
         "--models-dir",
@@ -519,6 +590,12 @@ def main() -> None:
     csvs = _parse_csvs(args.csvs)
     if args.train_only:
         args.skip_features = True
+
+    # Datasets and results live next to the images, not the CWD
+    if args.dataset_dir is None:
+        args.dataset_dir = args.images_root / "datasets"
+    if args.results_dir is None:
+        args.results_dir = args.images_root / "results"
 
     datasets = load_datasets(
         csvs=csvs,
